@@ -579,7 +579,7 @@ void Max_State_Pro::set_bs_location(uint8_t branch, uint8_t location)
     share_state.lock_qtshare();
 
     (share_state.data + branch)->line_state.BS_Location = location;
-
+     zprintf1("write share bs_location branch = %d, break_location = %d\r\n", branch, location);
     share_state.unlock_qtshare();
 }
 
@@ -588,7 +588,7 @@ void Max_State_Pro::set_break_location( uint8_t branch, uint8_t location )
     share_state.lock_qtshare();
 
     (share_state.data + branch)->line_state.break_location = location;
-
+    zprintf1("write share break_location branch = %d, break_location = %d\r\n", branch, location);
     share_state.unlock_qtshare();
 }
 

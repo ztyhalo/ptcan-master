@@ -1236,16 +1236,51 @@ int max_stop_report_frameproc(void * pro1030, CANDATAFORM  rxmeg)
 
     return 1;
 }
+
+uint8_t break_location_g[BS_MAX_NUM];
+
+int get_break_location(void)
+{
+    QString Str;
+    for ( int8_t i = BS_MAX_NUM - 1; i >= 0; i--)
+    {
+        if (break_location_g[i] == 0)
+        {
+            continue;
+        }
+        for (int8_t j = 7; i >= 0; j--)
+        {
+            if (IS_ONE(break_location_g[i] ,j))
+            {
+                return (i * 8 + j + 1);
+            }
+        }
+    }
+    return 0;
+}
+
+int set_break_location(uint8_t location)
+{
+    break_location_g[location/8] |= (1 << (location%8));
+    return get_break_location();
+}
+
+int recaver_break_location(uint8_t location)
+{
+    break_location_g[location/8] &= (~(1 << (location%8)));
+    return get_break_location();
+}
+
 /***********************************************************************************
  * 函数名：break_location_report_frameproc
  * 功能：段路位置帧处理
  ***********************************************************************************/
 int break_location_report_frameproc(void * pro1030, CANDATAFORM  rxmeg)
 {
-
     CANFRAMEID  rxmidframe;
     cs_can      *csrxcanp = (cs_can *) pro1030;
     int         branch;
+    uint8_t     break_location;
 
     if(csrxcanp == NULL)
         return 0;
@@ -1261,30 +1296,81 @@ int break_location_report_frameproc(void * pro1030, CANDATAFORM  rxmeg)
     }
     if ( rxmidframe.canframework.func_5 == CMD_SEND_LOCK_LOCATION )
     {
-        uint8_t offset = 0;
-        uint8_t data[2] = {0};
-        if ( (rxmeg.Data[0] & 0x80 ) != 0x80 )
-        {
-            offset = 1;
-        }
-        data[ 0 ] = rxmeg.Data[ 0 ] & 0x7f;
-        data[ 1 ] = rxmidframe.canframework.devaddr_8-offset;
+//        bool offset = 1;
+        uint8_t break_type, location;
+
+//        if ( (rxmeg.Data[0] & 0x80 ) == 0x80 )
+//        {
+//            offset = 0;
+//        }
+
+        break_type = rxmeg.Data[ 0 ];
+//        location = rxmidframe.canframework.devaddr_8-offset;
+        location = rxmidframe.canframework.devaddr_8;
         csrxcanp->cs_send_data( CMD_REV_LOCK_LOCATION_ACK, rxmidframe.canframework.zjaddr_3, rxmidframe.canframework.csaddr_2, \
                                 rxmidframe.canframework.devaddr_8,rxmeg.Data, 2);
-        if ( data[ 0 ] == 0x02 )
+        if ( break_type == 0x00 )
         {
-            csrxcanp->state_info.set_bs_location( branch, data[ 1 ] );
-            if ( csrxcanp->state_info.get_dev_state( data[ 1 ] ) & 0x04 || csrxcanp->state_info.get_dev_state( data[ 1 ] + 1 ) & 0x04 )
+//            qDebug()<<"break type 00";
+            break_location = recaver_break_location(location-1);
+            csrxcanp->state_info.set_bs_location( branch, break_location );
+//            qDebug()<<"set bs break  "<<break_location;
+            if ( csrxcanp->state_info.get_dev_state( break_location ) & 0x04 || \
+                 csrxcanp->state_info.get_dev_state( break_location + 1 ) & 0x04 || \
+                 csrxcanp->state_info.get_dev_state( break_location - 1 ) & 0x04 )
             {
                 csrxcanp->state_info.set_break_location( branch, 0 );
+//                qDebug()<<"set break  "<<0;
                 return 0;
             }
-            csrxcanp->state_info.set_break_location( branch, data[ 1 ] );
+            csrxcanp->state_info.set_break_location( branch, break_location );
+//            qDebug()<<"set break  "<<break_location;
         }
-        if ( data[ 0 ] == 0x03 )
+        else if ( break_type == 0x02 )
         {
-            csrxcanp->state_info.set_tail_location( branch, data[ 1 ] );
-            csrxcanp->state_info.set_bs_location( branch, data[ 1 ] );
+//            qDebug()<<"break type 02";
+//            qDebug()<<"location ="<<location;
+            recaver_break_location(location-1);
+            break_location = set_break_location(location - 2);
+//            qDebug()<<"csrxcanp->state_info.get_dev_state( location - 1 )"<<csrxcanp->state_info.get_dev_state( location - 1 );
+            if (csrxcanp->state_info.get_dev_state( location - 1 ) & 0x04 || csrxcanp->state_info.get_dev_state( location ) & 0x04)
+            {
+//                qDebug()<<"entry";
+                csrxcanp->state_info.set_bs_location( branch, break_location );
+//                qDebug()<<"set bs break  "<<break_location;
+                csrxcanp->state_info.set_break_location(branch, 0);
+//                qDebug()<<"set break  "<<0;
+                return 0;
+            }
+
+            csrxcanp->state_info.set_break_location(branch, break_location);
+//            qDebug()<<"set break  "<<break_location;
+        }
+        else if ( break_type == 0x82 )
+        {
+//            zprintf1("break type 82\r\n");
+            break_location = set_break_location(location - 1);
+            csrxcanp->state_info.set_bs_location(branch, break_location);
+//            qDebug()<<"set bs break  "<<break_location;
+            if ( csrxcanp->state_info.get_dev_state(break_location) & 0x04 || csrxcanp->state_info.get_dev_state(break_location + 1) & 0x04)
+            {
+                csrxcanp->state_info.set_break_location(branch, 0);
+//                qDebug()<<"set break  "<<0;
+                return 0;
+            }
+            csrxcanp->state_info.set_break_location(branch, break_location);
+//            qDebug()<<"set break  "<<break_location;
+        }
+        else if ( break_type == 0x03 )
+        {
+            csrxcanp->state_info.set_tail_location(branch, location-1);
+            csrxcanp->state_info.set_bs_location(branch, location-1);
+            csrxcanp->state_info.set_termal_vol(branch, 0);
+        }
+        else if ( break_type == 0x83 )
+        {
+            csrxcanp->state_info.set_tail_location(branch, location);
+            csrxcanp->state_info.set_bs_location(branch, location);
             csrxcanp->state_info.set_termal_vol( branch, 0 );
         }
     }
@@ -2374,6 +2460,7 @@ void cs_can::max_reset_data(void)
     csmacorder = 0;     //mac查询应答顺序编号
     csioorder = 0;
     memset(slave_io_num, 0, 3);
+    memset(break_location_g, 0, 255);
     memset(cszjorder, 0 , 3);
     ndev_map.clear();
     mac_cs_num = 0;

@@ -114,6 +114,7 @@ int main(int argc, char *argv[])
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     zprintf1("\r\n");
     zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H,PTCAN_VERSION_M,PTCAN_VERSION_L);
+    zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H,PTCAN_VERSION_M,PTCAN_VERSION_L);
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
 

@@ -13,7 +13,7 @@ using namespace std;
 
 #define PTCAN_VERSION_H 1
 #define PTCAN_VERSION_M 4
-#define PTCAN_VERSION_L 2
+#define PTCAN_VERSION_L 3
 
 #define PT_INPUTPARA_MAX    5
 #define PT_OUTPUTPARA_MAX   1
@@ -45,7 +45,7 @@ using namespace std;
 
 #define SET_NTH_BIT(x,n) (x | 1U << n)
 #define CLEAR_NTH_BIT(x,n) (x & ~(1U << n))
-
+#define IS_ONE(number, n)  ((number >> n) & (0x1))
 enum {
     RESET_SUCCESS = 0,
     RESET_FAIL
