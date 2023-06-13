@@ -425,6 +425,8 @@ bool Max_State_Pro::set_slaveio_num(uint8_t branch, uint8_t num)
 {
     bool ret;
     share_state.lock_qtshare();
+    qDebug()<<"share data set slaveio num is "<<num;
+    zprintf1("share data set slaveio num is %d\r\n", num);
     if((share_state.data + branch)->line_state.Slave_IO_Exist == num)
     {
         ret = false;
@@ -658,6 +660,7 @@ void Max_State_Pro::set_all_dev_state(uint8_t val)
 
 void Max_State_Pro::set_all_state_clear()
 {
+    qDebug()<<"---------set_all_state_clear begin---------------";
     for ( uint8_t branch = 0; branch < BRANCH_ALL; branch++ )
     {
         set_line_work_state( branch, CS_WORK_STATUS_LIVEOUT );
@@ -668,5 +671,6 @@ void Max_State_Pro::set_all_state_clear()
         set_bs_type(branch, 0);
         //memset( ( share_state.data + i )->line_state.line_state.BS_Buttion, 0, BS_MAX_NUM );
     }
+    qDebug()<<"---------set_all_state_clear end---------------";
 }
 
