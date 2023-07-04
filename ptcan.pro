@@ -40,6 +40,8 @@ linux-g++{
            DEFINES += PC_PLATFORM
 }
 
+DEFINES += NO_LOCK_ERROR
+
 INCLUDEPATH = .\
         mutex\
         epoll\

@@ -13,7 +13,7 @@ using namespace std;
 
 #define PTCAN_VERSION_H 1
 #define PTCAN_VERSION_M 4
-#define PTCAN_VERSION_L 4
+#define PTCAN_VERSION_L 5
 
 #define PT_INPUTPARA_MAX  5
 #define PT_OUTPUTPARA_MAX 1
@@ -387,12 +387,14 @@ class Max_State_Pro : public Dev_Map_T< char >
 {
   public:
     int                             cs_have;
+    uint8_t                         tatol_dev;
     QT_Share_MemT< Max_State_Data > share_state;
 
   public:
     Max_State_Pro()
     {
-        cs_have = 0;
+        cs_have   = 0;
+        tatol_dev = 0;
     }
     ~Max_State_Pro()
     {
@@ -438,6 +440,9 @@ class Max_State_Pro : public Dev_Map_T< char >
     uint8_t       get_dev_state(int branch, int id);
     void          set_dev_cv_state(uint8_t branch, uint8_t num, uint8_t v, uint8_t c);
     void          set_dev_version_state(uint8_t branch, uint8_t num, uint16_t boot_v, uint16_t app_v);
+    uint8_t       get_dev_num(int branch);
+    uint8_t       get_dev_type(uint8_t branch, uint8_t num);
+    uint8_t       get_bs_is_have(uint8_t branch);
     PT_Dev_State* get_dev_info(uint id)
     {
         return ((PT_Dev_State*) get_dev_addr(id));

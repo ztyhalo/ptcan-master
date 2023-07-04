@@ -24,14 +24,15 @@
 #include <sys/types.h>
 #include <dirent.h>
 
-Can_Data  * gCanInfo = NULL;
-//Print_Server * netp = NULL;
+Can_Data* gCanInfo = NULL;
+// Print_Server * netp = NULL;
 
 void SignalFunc(int var)
 {
     ::printf("<DeviceMng signal1 exit %d val!>\n", var);
 
-    if(gCanInfo != NULL){
+    if (gCanInfo != NULL)
+    {
         delete gCanInfo;
         delete debug_p;
         delete gNetP;
@@ -40,16 +41,15 @@ void SignalFunc(int var)
     exit(0);
 }
 
-
 O_Timer timr;
-int printf_time_callback(TEvent * tmpara)
+int     printf_time_callback(TEvent* tmpara)
 {
     nprintf("info is!\n");
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    QTextCodec *codec = QTextCodec::codecForName("UTF-8");
+    QTextCodec* codec = QTextCodec::codecForName("UTF-8");
 
     QTextCodec::setCodecForTr(codec);
     QTextCodec::setCodecForLocale(codec);
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 //         argv[6] = "87654322";
          argv[6] = "1";
          argv[7] = "87654338";
-#if   0
+#if 0
          argv[8] = "tk200";
 #else
          argv[8] = "236_1";
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 //         argv[7] = "1030";
 //         argv[7] = "tk200";
 #endif
-    if(argc <9)
+    if (argc < 9)
     {
         printf("driver init para error!\n");
         return -1;
@@ -83,11 +83,11 @@ int main(int argc, char *argv[])
 
     string type = argv[8];
 
-//         string pr_file = "/opt/config/usr/Par/" + type;
+    //         string pr_file = "/opt/config/usr/Par/" + type;
 
     string path = "/opt/ptcan_log/";
-    int ret;
-    if (access(path.c_str(), F_OK ) == -1)
+    int    ret;
+    if (access(path.c_str(), F_OK) == -1)
     {
         int flag = mkdir(path.c_str(), S_IRWXU);
         if (flag == 0)
@@ -113,30 +113,29 @@ int main(int argc, char *argv[])
     }
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     zprintf1("\r\n");
-    zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H,PTCAN_VERSION_M,PTCAN_VERSION_L);
-    zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H,PTCAN_VERSION_M,PTCAN_VERSION_L);
+    zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H, PTCAN_VERSION_M, PTCAN_VERSION_L);
+    zprintf3("ptcan low version is %d\r\n", 0x07);
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
-
-    signal ( SIGINT, SignalFunc );
-    signal ( SIGTERM, SignalFunc );
+    signal(SIGINT, SignalFunc);
+    signal(SIGTERM, SignalFunc);
 
     gCanInfo = new Can_Data();
 
-    if(gCanInfo == NULL)
+    if (gCanInfo == NULL)
     {
         zprintf1("error: can data creat failed!\n");
         return -1;
     }
 
-    int *point = &(gCanInfo->devkey.data_key);
-    for(int i=1; i<argc-1;i++)
+    int* point = &(gCanInfo->devkey.data_key);
+    for (int i = 1; i < argc - 1; i++)
     {
-        qDebug()<<"main argv["<<i<<"]: "<<argv[i];
+        qDebug() << "main argv[" << i << "]: " << argv[i];
         *point++ = atoi(argv[i]);
     }
 
-    if((type == "1030")||(type == "236_1")||(type == "236_2"))
+    if ((type == "1030") || (type == "236_1") || (type == "236_2"))
     {
         gNetP = new Print_Server;
     }
@@ -146,25 +145,27 @@ int main(int argc, char *argv[])
     }
 
 #ifdef ARM_PLATFORM
-    string dir = "/opt/config/driver/device/"+type +".xml";
+    string dir = "/opt/config/driver/device/" + type + ".xml";
     string dir1, dir2;
     if (type == "236_1")
     {
-        dir1 = "/opt/config/driver/device/"+type + "_1" +".xml";
-        dir2 = "/opt/config/driver/device/"+type + "_2" +".xml";
+        dir1 = "/opt/config/driver/device/" + type + "_1" + ".xml";
+        dir2 = "/opt/config/driver/device/" + type + "_2" + ".xml";
     }
     gCanInfo->creat_can_bus_pro();
-    gCanInfo->can_read_xml(QString(QString::fromLocal8Bit(dir.c_str())), QString(QString::fromLocal8Bit(dir1.c_str())), QString(QString::fromLocal8Bit(dir2.c_str())));
+    gCanInfo->can_read_xml(QString(QString::fromLocal8Bit(dir.c_str())), QString(QString::fromLocal8Bit(dir1.c_str())),
+        QString(QString::fromLocal8Bit(dir2.c_str())));
 
     gCanInfo->can_app_init();
 
 #else
-/*            string type = argv[8];
-            string dir = "/opt/"+type +".xml";
-            cout << dir <<endl;
-            Driver_Para<can_bus_para,can_bus_para_t> read;
-            read.read_xml_dri_para("/home/zty/devicemng/tk200.xml","BusPara");
-            printf(" %d %d\n", read.dri_info.canid, read.dri_info.crctime)*/;
+    /*            string type = argv[8];
+                string dir = "/opt/"+type +".xml";
+                cout << dir <<endl;
+                Driver_Para<can_bus_para,can_bus_para_t> read;
+                read.read_xml_dri_para("/home/zty/devicemng/tk200.xml","BusPara");
+                printf(" %d %d\n", read.dri_info.canid, read.dri_info.crctime)*/
+    ;
 //          gCanInfo.can_read_xml("/home/zty/devicemng/tk200.xml");
 //          gCanInfo.can_app_init();
 
@@ -180,6 +181,4 @@ int main(int argc, char *argv[])
 #endif
 
     return a.exec();
-
-
 }
