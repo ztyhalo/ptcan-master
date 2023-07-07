@@ -290,49 +290,45 @@ struct break_msg
 class cs_can
 {
   public:
-    CSCANSTATE csstate; // 1030协议初始化时的状态变迁
-
-    uint8_t  csid;                  // cs id 0,1,2
-    uint8_t  csdevtyle;             // cs dev style 0:100+cs 1:io
-    uint8_t  devonnum;              //该can总线下的设备数量
-    uint8_t  cf_devnum;             //配置的设备个数()
-    uint8_t  cf_file_num;           //配置文件配置的设备个数
-    uint8_t  cf_cs_num[BRANCH_ALL]; // 0:本沿线 1：本沿线中继后的沿线 2：CS中继后的LS
-    uint16_t cf_endnum;             //重配的结束设备编号
-    uint8_t  line_num;
-
-    uint8_t cs_jt_status;
-    uint8_t csmacstate;               // mac查询状态
-    uint8_t csmacorder;               //沿线总设备数
-    uint8_t csioorder;                // mac查询应答顺序编号
-    uint8_t cszjorder[BRANCH_ALL];    // 0:本沿线 1：本沿线中继后的沿线 2：CS中继后的LS
-    uint8_t slave_io_num[BRANCH_ALL]; // mac查询应答顺序编号
-    uint8_t init_over;                //初始化进程结束
-    uint8_t mac_cs_num;               // mac查询cs存在
-
-    uint8_t mac_terminal_num;         // mac查询终端存在
-
-    uint8_t csmacorder_temp;               // mac查询应答顺序编号
-    uint8_t csioorder_temp;                // mac查询应答顺序编号
-    uint8_t cszjorder_temp[BRANCH_ALL];    // mac查询应答顺序编号
-    uint8_t slave_io_num_temp[BRANCH_ALL]; // mac查询应答顺序编号
-    uint8_t mac_cs_num_temp;               // mac查询cs存在
-    uint8_t mac_terminal_num_temp;         // mac查询终端存在
-
-    uint8_t        heartcout;   //心跳发送顺序计数
-    uint8_t        reset_state; //复位状态
-    CSCONFERR      csconfstate; //配置状态
-    int            auto_reset;
-    pthread_t      initproid;    // 1030协议初始化线程id号
-    pthread_t      reset_id;     //复位id
-    int            polltimer_id; //论询定时器id
-    uint8_t        reset_msg[3];
-    uint8_t        low_num[2];
-    uint8_t        bs_button_report[4];
-    uint8_t        bs_type_r     = 0xff;
-    uint8_t        bs_location_r = 0xff;
-    ncan_protocol* pro_p; //使用的can协议指针
-
+    CSCANSTATE         csstate;               // 1030协议初始化时的状态变迁
+    uint8_t            csid;                  // cs id 0,1,2
+    uint8_t            csdevtyle;             // cs dev style 0:100+cs 1:io
+    uint8_t            devonnum;              //该can总线下的设备数量
+    uint8_t            cf_devnum;             //配置的设备个数()
+    uint8_t            cf_file_num;           //配置文件配置的设备个数
+    uint8_t            cf_cs_num[BRANCH_ALL]; // 0:本沿线 1：本沿线中继后的沿线 2：CS中继后的LS
+    uint16_t           cf_endnum;             //重配的结束设备编号
+    uint8_t            line_num;
+    uint8_t            cs_jt_status;
+    uint8_t            csmacstate;                 // mac查询状态
+    uint8_t            csmacorder;                 //沿线总设备数
+    uint8_t            csioorder;                  // mac查询应答顺序编号
+    uint8_t            cszjorder[BRANCH_ALL];      // 0:本沿线 1：本沿线中继后的沿线 2：CS中继后的LS
+    uint8_t            slave_io_num[BRANCH_ALL];   // mac查询应答顺序编号
+    uint8_t            init_over;                  //初始化进程结束
+    uint8_t            mac_cs_num;                 // mac查询cs存在
+    uint8_t            mac_terminal_num;           // mac查询终端存在
+    uint8_t            csmacorder_temp;            // mac查询应答顺序编号
+    uint8_t            csioorder_temp;             // mac查询应答顺序编号
+    uint8_t            cszjorder_temp[BRANCH_ALL]; // mac查询应答顺序编号
+    uint8_t            slave_io_num_temp[BRANCH_ALL];       // mac查询应答顺序编号
+    uint8_t            mac_cs_num_temp;                     // mac查询cs存在
+    uint8_t            mac_terminal_num_temp;               // mac查询终端存在
+    uint8_t            cmd_24_unused;                       //收到复位帧后，此次24查询失效
+    uint8_t            break_line_pretreatment[BRANCH_ALL]; //有闭锁按下时，断线预处理。
+    uint8_t            heartcout;                           //心跳发送顺序计数
+    uint8_t            reset_state;                         //复位状态
+    CSCONFERR          csconfstate;                         //配置状态
+    int                auto_reset;
+    pthread_t          initproid;    // 1030协议初始化线程id号
+    pthread_t          reset_id;     //复位id
+    int                polltimer_id; //论询定时器id
+    uint8_t            reset_msg[3];
+    uint8_t            low_num[2];
+    uint8_t            bs_button_report[4];
+    uint8_t            bs_type_r     = 0xff;
+    uint8_t            bs_location_r = 0xff;
+    ncan_protocol*     pro_p; //使用的can协议指针
     BS_Dev             bs100info;
     TK_IO_Dev*         tk100io; // tk100的io模块
     Pt_Devs_ShareData* data_p;
