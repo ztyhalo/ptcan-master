@@ -848,6 +848,7 @@ int mac_inquire_ack_proc(void* pro1030, CANDATAFORM rxmeg)
         {
             if (csrxcanp->mac_cszd_have.val(0).mac_terminal_have == 0)
             {
+                csrxcanp->state_info.set_tail_location(branch, 0);
                 csrxcanp->mac_cszd_have.val(0).mac_terminal_have = 1;
                 csrxcanp->add_default_dev(get_zj_index, get_cs_index, get_dev_addr, 0, devtype);
             }
@@ -1130,28 +1131,28 @@ int output_controlack_frameproc(void* pro1030, CANDATAFORM rxmeg)
  ***********************************************************************************/
 int output_controlack_overproc(void* pro1030, CANDATAFORM overmeg)
 {
-    uint8_t reset_reason[2] = {0, 0};
+    CS_BRANCH_TYPE branch;
+    uint8_t      reset_reason[4] = {0, 0, 0, 0};
     cs_can* csrxcanp        = (cs_can*) pro1030;
     int     order;
-    if (csrxcanp == NULL) return -1;
+    if (csrxcanp == NULL)
+    {
+        return -1;
+    }
     CANFRAMEID rxmidframe;
     rxmidframe.canframeid = overmeg.ExtId;
     uint8_t get_dev_addr, get_zj_index, get_cs_index;
     get_dev_addr = rxmidframe.canframework.devaddr_8;
     get_zj_index = rxmidframe.canframework.zjaddr_3;
     get_cs_index = rxmidframe.canframework.csaddr_2;
-
+    branch       = csrxcanp->get_branch(rxmidframe);
     csrxcanp->is_have_dev(
         rxmidframe.canframework.zjaddr_3, rxmidframe.canframework.csaddr_2, rxmidframe.canframework.devaddr_8, order);
     csrxcanp->set_dev_status(get_dev_addr, DEV_OFF_LINE); //离线
-    //    printf("1030dev%d out control failed!\n", rxmidframe.canframework.devaddr_8);
-    //    for(int i = 0; i < overmeg.DLC; i++)
-    //    {
-    //        printf(" 0x%x ", overmeg.Data[i]);
-    //    }
-    //    printf("\n");
     reset_reason[0] = PTCAN_RESET_IO_NOACK;
     reset_reason[1] = csrxcanp->auto_reset;
+    reset_reason[2] = get_dev_addr;
+    reset_reason[3] = csrxcanp->state_info.get_dev_type(branch, get_dev_addr);
     if (csrxcanp->auto_reset)
     {
         csrxcanp->nconfig_map.val(0).dev_send_meg(RESET_REASON, reset_reason, sizeof(reset_reason));
@@ -1229,7 +1230,7 @@ int max_stop_report_frameproc(void* pro1030, CANDATAFORM rxmeg)
             csrxcanp->cs_jt_status = rxmeg.Data[0];
             if (rxmeg.Data[0] == CS_JT_OK)
             {
-                csrxcanp->state_info.set_tail_location(branch, 0);
+//                csrxcanp->state_info.set_tail_location(branch, 0);
                 csrxcanp->state_info.set_bs_location(branch, 0);
                 csrxcanp->state_info.set_break_location(branch, 0);
             }
@@ -1481,7 +1482,6 @@ ACK_PROSS:
  ***********************************************************************************/
 int dev_work_check_callback(void* pro1030, CANDATAFORM rxmeg)
 {
-    uint8_t        reset_reason[2] = {0, 0};
     cs_can*        csrxcanp        = (cs_can*) pro1030;
     int            config_devid    = 0, slave_io_num_tmp;
     CS_BRANCH_TYPE branch;
@@ -1503,7 +1503,19 @@ int dev_work_check_callback(void* pro1030, CANDATAFORM rxmeg)
         if ((csrxcanp->cszjorder_temp[branch] + 1) != get_dev_addr && csrxcanp->csdevtyle == 0)
         {
             csrxcanp->csmacstate = MAC_ORDER_ERR;
-            csrxcanp->cs_can_reset_sem();
+            zprintf1(" dev check receive terminal %d\r\n", receive_teminal_cnt);
+            checkframe                        = rxmidframe;
+            checkframe.canframework.devaddr_8 = 255;
+            checkframe.canframework.csaddr_2  = 0;
+            checkframe.canframework.zjaddr_3  = 0;
+            checkframe.canframework.dir_1     = 1;
+            checkframe.canframework.ack_1     = 0;
+            rxprodata                         = csrxcanp->pro_p->read_deldata_buf(checkframe.canframeid, 1);
+            if (rxprodata != NULL)
+            {
+                zprintf1("delet dev type 3\n");
+            }
+            return 0;
         }
         else
         {
@@ -1575,14 +1587,20 @@ int dev_work_check_callback(void* pro1030, CANDATAFORM rxmeg)
                 {
                     zprintf1("delet dev type 2 %d\n", devtype);
                 }
-                if (++receive_teminal_cnt > 2)
+
+                if (csrxcanp->mac_cszd_have.val(0).mac_terminal_have == 0)
                 {
-                    receive_teminal_cnt = 0;
-                    reset_reason[0]     = PTCAN_RESET_LINE_ERROR;
-                    reset_reason[1]     = csrxcanp->auto_reset;
-                    csrxcanp->nconfig_map.val(0).dev_send_meg(RESET_REASON, reset_reason, sizeof(reset_reason));
-                    csrxcanp->cs_can_reset_sem();
+                    csrxcanp->state_info.set_tail_location(branch, 0);
+                    csrxcanp->mac_cszd_have.val(0).mac_terminal_have = 1;
+                    csrxcanp->add_default_dev(get_zj_index, get_cs_index, get_dev_addr, 0, devtype);
                 }
+                // TODO: zj
+                csrxcanp->cszjorder[0]++;
+                csrxcanp->state_info.set_dev_type(0, rxmidframe.canframework.devaddr_8 - 1, rxmeg.Data[4]);
+                csrxcanp->state_info.set_dev_num(0, rxmidframe.canframework.devaddr_8);
+                csrxcanp->set_dev_status(rxmidframe.canframework.devaddr_8, DEV_ON_LINE);
+                csrxcanp->set_devonline_num(rxmidframe.canframework.devaddr_8);
+                csrxcanp->cs_send_data(CMD_SEND_PARACORRECT, get_zj_index, get_cs_index, get_dev_addr, NULL, 0);
             }
         }
     }
@@ -1596,7 +1614,6 @@ int dev_work_check_overtime(void* pro1030, CANDATAFORM rxmeg)
 {
     //    uint8_t reset_reason[2] = {0,0};
     cs_can*        csrxcanp           = (cs_can*) pro1030;
-    static uint8_t check_overtime_cnt = 0;
     static uint8_t error_cnt          = 0;
     Q_UNUSED(rxmeg);
     if (csrxcanp->csstate == CS_CAN_NORMAL)
@@ -1625,10 +1642,6 @@ int dev_work_check_overtime(void* pro1030, CANDATAFORM rxmeg)
                         if (++error_cnt > 2)
                         {
                             zprintf1("need reset\r\n");
-                            csrxcanp->cs_can_reset_pro();
-                            //                            csrxcanp->csioorder = csrxcanp->csioorder_temp;
-                            //                            memcpy(csrxcanp->slave_io_num, csrxcanp->slave_io_num_temp,
-                            //                            sizeof(csrxcanp->slave_io_num));
                         }
                     }
                     csrxcanp->nconfig_map.val(0).dev_send_meg(
@@ -1650,7 +1663,6 @@ int dev_work_check_overtime(void* pro1030, CANDATAFORM rxmeg)
         uint8_t tail_location;
         for (int i = 0; i < BRANCH_ALL; i++)
         {
-            zprintf3("set mac chekc %d 24 \r\n", i);
             if (csrxcanp->cmd_24_unused == 0)
             {
                 csrxcanp->state_info.set_dev_num(i, csrxcanp->cszjorder_temp[i]);
@@ -1664,28 +1676,15 @@ int dev_work_check_overtime(void* pro1030, CANDATAFORM rxmeg)
                 if (tail_location > csrxcanp->cszjorder_temp[i] || tail_location == 0)
                 {
                     csrxcanp->state_info.set_termal_vol(i, 0);
-                    if (csrxcanp->cs_jt_status != CS_JT_OK)
-                    {
-                        csrxcanp->state_info.set_tail_location(i, csrxcanp->cszjorder_temp[i]);
-                        csrxcanp->state_info.set_bs_location(i, csrxcanp->cszjorder_temp[i]);
-                    }
+
+                    csrxcanp->state_info.set_tail_location(i, csrxcanp->cszjorder_temp[i]);
+                    csrxcanp->state_info.set_bs_location(i, csrxcanp->cszjorder_temp[i]);
                 }
             }
             else
             {
                 zprintf3("ji shi zhi zhi\r\n");
             }
-        }
-        if (++check_overtime_cnt > 2)
-        {
-            //            check_overtime_cnt = 0;
-            //            reset_reason[0] = PTCAN_RESET_LINE_ERROR;
-            //            reset_reason[1] = csrxcanp->auto_reset;
-            //            if (csrxcanp->auto_reset) {
-            //                csrxcanp->nconfig_map.val(0).dev_send_meg(RESET_REASON, reset_reason,
-            //                sizeof(reset_reason));
-            //            }
-            //            csrxcanp->cs_can_reset_pro( );
         }
     }
     return 0;
@@ -1822,6 +1821,7 @@ __inline__ bool count_heart_nextprocess(cs_can* csrxcanp, uint8_t devnum, uint t
 {
     return csrxcanp->nconfig_map.val(devnum).framark.to_ulong() == ((0x0001 << (ttl)) - 1);
 }
+
 bool is_heartframe_correct(cs_can* csrxcanp, uint8_t devnum, int ttl, CANDATAFORM rxmeg, uint16_t devtyle)
 {
     bool ret = FALSE;
@@ -1829,9 +1829,6 @@ bool is_heartframe_correct(cs_can* csrxcanp, uint8_t devnum, int ttl, CANDATAFOR
     Q_UNUSED(devtyle);
     if (count_heart_nextprocess(csrxcanp, devnum, ttl))
     {
-        //            printf("heartframe_correct_error %d,
-        //            %d!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",DEVPOLLSIZE(devtyle), ((ttl
-        //            *8)+rxmeg.DLC) );
         ret = TRUE;
     }
     csrxcanp->nconfig_map.val(devnum).framark.reset();
@@ -1894,7 +1891,7 @@ void heart_nonextprocess(CANPRODATA* rxprodata, cs_can* csrxcanp, uint8_t devnum
                 csrxcanp->cs_jt_status = rxmeg.Data[1];
                 if (rxmeg.Data[1] == 0)
                 {
-                    csrxcanp->state_info.set_tail_location(branch, 0);
+//                    csrxcanp->state_info.set_tail_location(branch, 0);
                     csrxcanp->state_info.set_bs_location(branch, 0);
                     csrxcanp->state_info.set_break_location(branch, 0);
                 }
@@ -2085,7 +2082,7 @@ int max_heart_ackframe_proc(void* pro1030, CANDATAFORM rxmeg)
  ***********************************************************************************/
 int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
 {
-    uint8_t      reset_reason[2] = {0, 0};
+    uint8_t      reset_reason[4] = {0, 0, 0, 0};
     cs_can*      csrxcanp        = (cs_can*) pro1030;
     CAN_DEV_APP* dev_pro_p       = NULL;
     Q_UNUSED(overmeg);
@@ -2163,6 +2160,8 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
                         }
                         reset_reason[0] = PTCAN_RESET_HEART_OVERTIME;
                         reset_reason[1] = csrxcanp->auto_reset;
+                        reset_reason[2] = soureid;
+                        reset_reason[3] = devtype;
                         if (devtype != CS_DEV)
                         {
                             if (csrxcanp->auto_reset)
@@ -2279,12 +2278,21 @@ int err_reportframe_proc(void* pro1030, CANDATAFORM rxmeg)
  ***********************************************************************************/
 int slavereset_frame_proc(void* pro1030, CANDATAFORM rxmeg)
 {
-    uint8_t reset_reason[2] = {0, 0};
-    cs_can* csrxcanp        = (cs_can*) pro1030;
+    uint8_t reset_reason[4] = {0, 0, 0, 0};
+    uint8_t    get_dev_addr, get_zj_index, get_cs_index;
+    CANFRAMEID rxmidframe;
+
+    cs_can* csrxcanp    = (cs_can*) pro1030;
     if (csrxcanp == NULL)
     {
         return 0;
     }
+    rxmidframe.canframeid = rxmeg.ExtId;
+
+    get_dev_addr = rxmidframe.canframework.devaddr_8;
+    get_zj_index = rxmidframe.canframework.zjaddr_3;
+    get_cs_index = rxmidframe.canframework.csaddr_2;
+
     tbyte_swap((uint16_t*) rxmeg.Data, rxmeg.DLC);
     rxmeg.Data[5]    = 0;
     uint16_t devtype = 0;
@@ -2292,11 +2300,13 @@ int slavereset_frame_proc(void* pro1030, CANDATAFORM rxmeg)
 
     if (devtype != TERMINAL)
     {
-        reset_reason[0] = PTCAN_RESET_SALVE;
-        reset_reason[1] = csrxcanp->auto_reset;
         if (csrxcanp->reset_state != DEV_RESET_ING)
         {
             csrxcanp->cmd_24_unused = 1;
+            reset_reason[0] = PTCAN_RESET_SALVE;
+            reset_reason[1] = csrxcanp->auto_reset;
+            reset_reason[2] = get_dev_addr;
+            reset_reason[3] = devtype;
             csrxcanp->nconfig_map.val(0).dev_send_meg(RESET_REASON, reset_reason, sizeof(reset_reason));
         }
         csrxcanp->cs_can_reset_sem();
@@ -2588,9 +2598,13 @@ void cs_can::send_configdata(void)
  ***********************************************************************************/
 void* cs_can::cs_protocol_init(void* para)
 {
+    uint8_t reset_reason[4] = {0, 0, 0, 0};
     if (((cs_can*) para)->cs_init() != 0)
     {
         zprintf1("init fail send sem!\n");
+        reset_reason[0] = PTCAN_RESET_INIT;
+        reset_reason[1] = ((cs_can*) para)->auto_reset;
+        ((cs_can*) para)->nconfig_map.val(0).dev_send_meg(RESET_REASON, reset_reason, sizeof(reset_reason));
         //((cs_can *)para)->set_reset_status(PTCAN_RESET_NORMAL);
         ((cs_can*) para)->cs_can_reset_sem();
     }
@@ -2605,14 +2619,11 @@ void* max_reset_process(void* para)
 {
     int            reset_no_err = true;
     cs_can*        cs_pro_p     = ((cs_can*) para);
-    uint8_t        reset_msg[3];
-    static uint8_t reset_cnt = 0;
     while (1)
     {
         reset_no_err = true;
         sem_wait(&cs_pro_p->reset_sem);
 
-        reset_cnt = 0;
         for (int branch = 0; branch < BRANCH_ALL; branch++)
         {
             cs_pro_p->state_info.set_termal_vol(branch, 0);
@@ -2756,7 +2767,7 @@ int cs_can::cs_config_init(void)
         {
             1,
             3,    //映射编号
-            1000, //超时时间
+            2000, //超时时间
             1,    //重发次数
             0x00, //应答帧
             this,
@@ -3025,20 +3036,17 @@ int cs_can::cs_init(void)
     if (csmacstate != MAC_NORMAL || csmacorder == 0)
     {
         zprintf3("csmacstate = %d\n", csmacstate);
-        qDebug() << "---------cs_init begin---------------";
         for (uint8_t branch = 0; branch < BRANCH_ALL; branch++)
         {
             state_info.set_tail_location(branch, 0);
             state_info.set_dev_num(branch, 0);
             state_info.set_bs_num(branch, 0);
             state_info.set_slaveio_num(branch, 0);
-            state_info.set_tail_location(branch, 0);
             state_info.set_termal_vol(0, 0);
             // memset( ( state_info.share_state.data + i )->line_state.line_state.BS_Buttion, 0, BS_MAX_NUM);
             state_info.set_line_work_state(0, CS_WORK_STATUS_LIVEOUT);
             mac_cszd_have.get_order_datap(branch)->clear();
         }
-        qDebug() << "---------cs_init end---------------";
         csmacorder = 0;
         csioorder  = 0;
         memset(slave_io_num, 0, BRANCH_ALL);
@@ -3047,7 +3055,6 @@ int cs_can::cs_init(void)
         init_over = 1;
         return -1;
     }
-    qDebug() << "---------cs_init2 begin---------------";
     for (uint8_t i = 0; i < BRANCH_ALL; i++)
     {
         zprintf3("set cszjorder %d mac check\r\n", i);
@@ -3056,7 +3063,6 @@ int cs_can::cs_init(void)
         state_info.set_slaveio_num(i, slave_io_num[i] - mac_cszd_have.get_order_data(i).mac_terminal_have -
                                           mac_cszd_have.get_order_data(i).mac_cs_have);
     }
-    qDebug() << "---------cs_init2 end---------------";
     set_dev_enable();
     if (get_config_low_num() != get_mac_low_num())
     {
@@ -3070,6 +3076,11 @@ int cs_can::cs_init(void)
             state_info.set_break_location(0, 0);
             return csconfstate;
         }
+    }
+    if (cmd_24_unused == 1)
+    {
+        cmd_24_unused = 0;
+        return -1;
     }
     uint16_t dev_type;
     for (uint32_t i = 0; i < (uint32_t) slave_io_num[0] + slave_io_num[1] + slave_io_num[2]; i++)
@@ -3124,6 +3135,7 @@ int cs_can::cs_init(void)
     reset_msg[0] = RESET_SUCCESS;
     reset_msg[1] = get_config_low_num();
     reset_msg[2] = get_mac_low_num();
+    reset_msg[3] = cszjorder[0]; //TODO：中继
     if (reset_msg[2] == 0xFF)
     {
         // TODO: zj
@@ -3153,7 +3165,6 @@ int cs_can::cs_init(void)
                      mac_cszd_have.get_order_data(i).mac_cs_have;
         nconfig_map.val(0).dev_send_meg(LOW_NUM_MEG, low_num, sizeof(low_num));
     }
-    cmd_24_unused = 0;
     return 0;
 }
 

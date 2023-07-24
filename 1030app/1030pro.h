@@ -323,7 +323,7 @@ class cs_can
     pthread_t          initproid;    // 1030协议初始化线程id号
     pthread_t          reset_id;     //复位id
     int                polltimer_id; //论询定时器id
-    uint8_t            reset_msg[3];
+    uint8_t            reset_msg[4];
     uint8_t            low_num[2];
     uint8_t            bs_button_report[4];
     uint8_t            bs_type_r     = 0xff;

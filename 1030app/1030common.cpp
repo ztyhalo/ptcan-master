@@ -532,12 +532,14 @@ void Max_State_Pro::set_termal_vol(uint8_t branch, uint8_t val)
 
 void Max_State_Pro::set_tail_location(uint8_t branch, uint8_t location)
 {
+    uint8_t dev_type = get_dev_type(branch, location - 1);
+    uint8_t dev_num = get_dev_num(branch);
     share_state.lock_qtshare();
-    if (get_dev_num(branch) >= location && get_dev_type(branch, location - 1) != TERMINAL)
+    if ( dev_num >= location && dev_type != TERMINAL)
     {
         if ((share_state.data + branch)->line_state.Tail_Location != location)
         {
-            zprintf1("|||share data||| set tail location is %d\r\n", location);
+            zprintf3("|||share data||| set tail location is %d\r\n", location);
             (share_state.data + branch)->line_state.Tail_Location = location;
         }
     }
@@ -621,14 +623,15 @@ void Max_State_Pro::set_bs_location(uint8_t branch, uint8_t location)
 
 void Max_State_Pro::set_break_location(uint8_t branch, uint8_t location)
 {
+    uint8_t dev_num = get_dev_num(branch);
     share_state.lock_qtshare();
-    if (get_dev_num(branch) >= location)
+    if (dev_num >= location)
     {
         if ((share_state.data + branch)->line_state.break_location != location)
         {
+            zprintf3("|||share data||| set branch: %d, break_location is %d\r\n", branch, location);
             (share_state.data + branch)->line_state.break_location = location;
         }
-        zprintf1("write share break_location branch = %d, break_location = %d\r\n", branch, location);
     }
     share_state.unlock_qtshare();
 }
