@@ -115,6 +115,7 @@ int main(int argc, char* argv[])
     zprintf1("\r\n");
     zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H, PTCAN_VERSION_M, PTCAN_VERSION_L);
     zprintf3("ptcan low version is %d\r\n", 0x03);
+    zprintf3("ptcan bs test\r\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);

@@ -2645,11 +2645,10 @@ void* max_reset_process(void* para)
             }
             if (reset_no_err != 0)
             {
-                //                reset_msg[0] = RESET_FAIL;
-                //                reset_msg[1] = cs_pro_p->get_config_low_num();
-                //                reset_msg[2] = cs_pro_p->get_mac_low_num();
-                //                cs_pro_p->nconfig_map.val(0).dev_send_meg(CS_REST_END_MEG, reset_msg,
-                //                sizeof(reset_msg));
+                cs_pro_p->reset_msg[0] = RESET_FAIL;
+                cs_pro_p->reset_msg[1] = cs_pro_p->get_config_low_num();
+                cs_pro_p->reset_msg[2] = cs_pro_p->get_mac_low_num();
+                cs_pro_p->nconfig_map.val(0).dev_send_meg(CS_REST_END_MEG, cs_pro_p->reset_msg, sizeof(cs_pro_p->reset_msg));
                 sleep(3);
             }
         }
