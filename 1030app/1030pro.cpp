@@ -3002,6 +3002,12 @@ void cs_can::set_devonline_num(uint8_t val)
     zprintf1("csmacorder is %d\n", csmacorder);
 }
 
+void * func(void * arg)
+{
+    zprintf1("shake is create\r\n");
+    return NULL;
+}
+
 /***********************************************************************************
  * 函数名：cs_send_data
  * 功能：cs应用发送的协议帧       configtype 0：配置类型第一次配置 1：重新配置
@@ -3124,6 +3130,8 @@ int cs_can::cs_init(void)
         state_info.set_line_work_state(i, CS_WORK_STATUS_RIGHT);
     }
     zprintf3("cs config end!\n");
+
+    pthread_create(&thread_shake, NULL, func, NULL);
     sleep(1);
     cs_send_data(CMD_SEND_HEARTCHECK, 0, 0, nconfig_map.val(0).para.id, NULL, 0);
 
