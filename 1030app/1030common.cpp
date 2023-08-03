@@ -345,27 +345,6 @@ void Max_State_Pro::set_ptcan_version(uint8_t branch)
     share_state.unlock_qtshare();
 }
 
-void Max_State_Pro::set_config_Slave_IO_Set(uint8_t branch, uint8_t num)
-{
-    share_state.lock_qtshare();
-    //    (share_state.data + branch)->line_state.para_config.Slave_IO_Set = num;
-    share_state.unlock_qtshare();
-}
-
-void Max_State_Pro::set_config_Auto_Reset(uint8_t branch, uint8_t flag)
-{
-    share_state.lock_qtshare();
-    //    (share_state.data + branch)->line_state.para_config.Auto_Reset = flag;
-    share_state.unlock_qtshare();
-}
-
-void Max_State_Pro::set_reset_status(PTCAN_RESET_E cmd)
-{
-    share_state.lock_qtshare();
-    //    (share_state.data + 0)->line_state.reset_reason = (uint8_t)cmd;
-    share_state.unlock_qtshare();
-}
-
 bool Max_State_Pro::set_dev_num(uint8_t branch, uint8_t num)
 {
     bool ret;
@@ -376,7 +355,7 @@ bool Max_State_Pro::set_dev_num(uint8_t branch, uint8_t num)
     else
     {
         (share_state.data + branch)->line_state.Dev_Exist = num;
-        zprintf1("|||share data||| set dev num is %d\r\n", num);
+        zprintf3("|||share|||-----set dev num is %d\r\n", num);
         ret = true;
     }
     share_state.unlock_qtshare();
@@ -423,13 +402,6 @@ void Max_State_Pro::set_dev_ID(uint8_t branch, uint8_t num, uint8_t val)
     share_state.unlock_qtshare();
 }
 
-void Max_State_Pro::set_dev_link(uint8_t branch, uint8_t num, uint8_t val)
-{
-    share_state.lock_qtshare();
-    //    (share_state.data + branch)->devc_state[num].Dev_Link = val;
-    share_state.unlock_qtshare();
-}
-
 bool Max_State_Pro::set_slaveio_num(uint8_t branch, uint8_t num)
 {
     bool ret;
@@ -441,7 +413,7 @@ bool Max_State_Pro::set_slaveio_num(uint8_t branch, uint8_t num)
     }
     else
     {
-        zprintf1("|||share data||| set slaveio num is %d\r\n", num);
+        zprintf3("|||share|||-----set slaveio num is %d\r\n", num);
         (share_state.data + branch)->line_state.Slave_IO_Exist = num;
         ret                                                    = true;
     }
@@ -496,11 +468,28 @@ void Max_State_Pro::set_cs_av_state(uint8_t branch, uint8_t v1, uint16_t c1, uin
     share_state.unlock_qtshare();
 }
 
+void Max_State_Pro::set_voip_state(uint8_t branch, uint8_t state)
+{
+    share_state.lock_qtshare();
+    zprintf3("|||share|||-----set_voip_state is %d\r\n", state);
+    if (state)
+    {
+        (share_state.data + branch)->line_state.lineState =
+            SET_NTH_BIT(((share_state.data + branch)->line_state.lineState), 5);
+    }
+    else
+    {
+        (share_state.data + branch)->line_state.lineState =
+            CLEAR_NTH_BIT((share_state.data + branch)->line_state.lineState, 5);
+    }
+    share_state.unlock_qtshare();
+}
 void Max_State_Pro::set_line_18v_state(uint8_t branch, uint8_t state, uint8_t lineNum)
 {
     share_state.lock_qtshare();
     uint8_t lineNumOffset = 3;
     uint8_t lineNumBit    = lineNumOffset + lineNum;
+    zprintf3("|||share|||-----set_line_18v_state is %d %d\r\n", lineNum, state);
     if (state)
     {
         (share_state.data + branch)->line_state.lineState =
@@ -539,7 +528,7 @@ void Max_State_Pro::set_tail_location(uint8_t branch, uint8_t location)
     {
         if ((share_state.data + branch)->line_state.Tail_Location != location)
         {
-            zprintf3("|||share data||| set tail location is %d\r\n", location);
+            zprintf3("|||share|||-----set tail location is %d\r\n", location);
             (share_state.data + branch)->line_state.Tail_Location = location;
         }
     }
@@ -561,7 +550,7 @@ void Max_State_Pro::set_bs_state(uint8_t branch, uint8_t addr, uint8_t state)
     if (state)
     {
         (share_state.data + branch)->devc_state[addr].Dev_State |= 4;
-        zprintf1("BS_Buttion dev %d is lock \r\n", addr);
+        zprintf3("BS_Buttion dev %d is lock \r\n", addr);
         (share_state.data + branch)->line_state.BS_Buttion[addr / 8] |= (1 << (addr % 8));
     }
     else
@@ -615,7 +604,7 @@ void Max_State_Pro::set_bs_location(uint8_t branch, uint8_t location)
 #endif
     if ((share_state.data + branch)->line_state.BS_Location != location)
     {
-        zprintf1("|||share data||| set banch: %d, break_location is %d\r\n", branch, location);
+        zprintf3("|||share|||-----set banch: %d, break_location is %d\r\n", branch, location);
         (share_state.data + branch)->line_state.BS_Location = location;
     }
     share_state.unlock_qtshare();
@@ -629,7 +618,7 @@ void Max_State_Pro::set_break_location(uint8_t branch, uint8_t location)
     {
         if ((share_state.data + branch)->line_state.break_location != location)
         {
-            zprintf3("|||share data||| set branch: %d, break_location is %d\r\n", branch, location);
+            zprintf3("|||share|||-----set branch: %d, break_location is %d\r\n", branch, location);
             (share_state.data + branch)->line_state.break_location = location;
         }
     }
@@ -662,9 +651,7 @@ uint8_t Max_State_Pro::get_bs_type(uint8_t branch)
 {
     uint8_t type;
     share_state.lock_qtshare();
-
     type = (share_state.data + branch)->line_state.BS_State;
-
     share_state.unlock_qtshare();
     return type;
 }
@@ -702,7 +689,6 @@ void Max_State_Pro::set_all_dev_state(uint8_t val)
 
 void Max_State_Pro::set_all_state_clear()
 {
-    qDebug() << "---------set_all_state_clear begin---------------";
     for (uint8_t branch = 0; branch < BRANCH_ALL; branch++)
     {
         set_line_work_state(branch, CS_WORK_STATUS_LIVEOUT);
@@ -713,5 +699,4 @@ void Max_State_Pro::set_all_state_clear()
         set_bs_type(branch, 0);
         // memset( ( share_state.data + i )->line_state.line_state.BS_Buttion, 0, BS_MAX_NUM );
     }
-    qDebug() << "---------set_all_state_clear end---------------";
 }

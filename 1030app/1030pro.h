@@ -123,6 +123,7 @@ enum
 
     CMD_SEND_WORK_DEV_CHECK = 24,
     CMD_SEND_HEARTCHECK     = 30,
+    CMD_SEND_BREAK_CHECK    = 31,
 };
 
 enum
@@ -326,6 +327,8 @@ class cs_can
     int                polltimer_id; //论询定时器id
     uint8_t            reset_msg[4];
     uint8_t            low_num[2];
+    uint8_t            break_location;
+    uint8_t            break_location_temp;
     uint8_t            bs_button_report[4];
     uint8_t            bs_type_r     = 0xff;
     uint8_t            bs_location_r = 0xff;

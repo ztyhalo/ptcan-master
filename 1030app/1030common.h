@@ -413,9 +413,7 @@ class Max_State_Pro : public Dev_Map_T< char >
     void          set_dev_state_AND(int id, uint8_t val);
     void          set_dev_state_OR(int id, uint8_t val);
     void          set_ptcan_version(uint8_t branch);
-    void          set_config_Slave_IO_Set(uint8_t branch, uint8_t num);
-    void          set_config_Auto_Reset(uint8_t branch, uint8_t flag);
-    void          set_reset_status(PTCAN_RESET_E cmd);
+    void          set_voip_state(uint8_t branch, uint8_t state);
     void          set_cs_av_state(uint8_t branch, uint8_t v1, uint16_t c1, uint8_t v2, uint16_t c2);
     void          set_line_18v_state(uint8_t branch, uint8_t state, uint8_t lineNum);
     void          set_line_work_state(uint8_t branch, uint8_t state);
@@ -436,7 +434,6 @@ class Max_State_Pro : public Dev_Map_T< char >
     bool          set_bs_num(uint8_t branch, uint8_t num);
     void          set_dev_type(uint8_t branch, uint8_t num, uint8_t val);
     void          set_dev_ID(uint8_t branch, uint8_t num, uint8_t val);
-    void          set_dev_link(uint8_t branch, uint8_t num, uint8_t val);
     uint8_t       get_dev_state(int id);
     uint8_t       get_dev_state(int branch, int id);
     void          set_dev_cv_state(uint8_t branch, uint8_t num, uint8_t v, uint8_t c);
