@@ -278,8 +278,8 @@ enum
 {
     DEV_NO_RESET = 0,
     DEV_RESET_ING,
+    DEV_RESET_CONFIG,
     DEV_RESET_OVER,
-    DEV_RESET_FINISH,
 };
 
 struct break_msg
@@ -314,8 +314,6 @@ class cs_can
     uint8_t            cszjorder_temp[BRANCH_ALL]; // mac查询应答顺序编号
     uint8_t            slave_io_num_temp[BRANCH_ALL];       // mac查询应答顺序编号
     uint8_t            mac_cs_num_temp;                     // mac查询cs存在
-    uint8_t            mac_terminal_num_temp;               // mac查询终端存在
-    uint8_t            cmd_24_unused;                       //收到复位帧后，此次24查询失效
     uint8_t            break_line_pretreatment[BRANCH_ALL]; //有闭锁按下时，断线预处理。
     uint8_t            heartcout;                           //心跳发送顺序计数
     uint8_t            reset_state;                         //复位状态
@@ -323,7 +321,7 @@ class cs_can
     int                auto_reset;
     pthread_t          initproid;    // 1030协议初始化线程id号
     pthread_t          reset_id;     //复位id
-    pthread_t          thread_shake;     //复位id
+    pthread_t          thread_shake; //复位id
     int                polltimer_id; //论询定时器id
     uint8_t            reset_msg[4];
     uint8_t            low_num[2];

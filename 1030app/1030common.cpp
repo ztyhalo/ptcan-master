@@ -351,7 +351,9 @@ bool Max_State_Pro::set_dev_num(uint8_t branch, uint8_t num)
     share_state.lock_qtshare();
 
     if ((share_state.data + branch)->line_state.Dev_Exist == num)
+    {
         ret = false;
+    }
     else
     {
         (share_state.data + branch)->line_state.Dev_Exist = num;
@@ -522,9 +524,9 @@ void Max_State_Pro::set_termal_vol(uint8_t branch, uint8_t val)
 void Max_State_Pro::set_tail_location(uint8_t branch, uint8_t location)
 {
     uint8_t dev_type = get_dev_type(branch, location - 1);
-    uint8_t dev_num = get_dev_num(branch);
+    uint8_t dev_num  = get_dev_num(branch);
     share_state.lock_qtshare();
-    if ( dev_num >= location && dev_type != TERMINAL)
+    if (dev_num >= location && dev_type != TERMINAL)
     {
         if ((share_state.data + branch)->line_state.Tail_Location != location)
         {

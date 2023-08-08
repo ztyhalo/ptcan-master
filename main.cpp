@@ -116,6 +116,14 @@ int main(int argc, char* argv[])
     zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H, PTCAN_VERSION_M, PTCAN_VERSION_L);
     zprintf3("ptcan low version is %d\r\n", 0x00);
     zprintf3("add shake thread\r\n");
+    zprintf3("ptcan low version is %d\r\n", 0x01);
+    zprintf3("del mac_24_used \r\n");
+    zprintf3("ptcan low version is %d\r\n", 0x02);
+    zprintf3("del debug \r\n");
+    zprintf3("ptcan low version is %d\r\n", 0x03);
+    zprintf3("reset finish report add csrxcanp->reset_msg != RESET_SUCCESS condition \r\n");
+    zprintf3("ptcan low version is %d\r\n", 0x04);
+    zprintf3("break location report before break_location = 0\r\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);
