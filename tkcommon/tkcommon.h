@@ -49,7 +49,7 @@ typedef enum
     LOW_MACH,
     TK236_IOModule_Salve,
     TERMINAL,
-    TK256_COUPLING,
+    IN_DEV,
     TK100_CSModule = 0x08,
     DEV_256_RELAY = 0x09,
     TK200_IOModule,

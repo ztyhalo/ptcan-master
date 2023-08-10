@@ -619,6 +619,7 @@ int mac_inquire_ack_proc(void* pro1030, CANDATAFORM rxmeg)
     CANPRODATA*    rxprodata = NULL;
     uint8_t        get_dev_addr, get_zj_index, get_cs_index;
     uint8_t        error_status[2] = {0};
+    uint16_t       get_boot_v, get_app_v;
     tbyte_swap((uint16_t*) rxmeg.Data, rxmeg.DLC);
 
     rxmidframe.canframeid = rxmeg.ExtId;
@@ -641,8 +642,8 @@ int mac_inquire_ack_proc(void* pro1030, CANDATAFORM rxmeg)
         }
         if (csrxcanp->csmacstate == MAC_NORMAL)
         {
-            int      paraid, dev_off;
-            uint16_t get_boot_v, get_app_v;
+            int paraid, dev_off;
+
             uint16_t devtype = 0;
 
             rxmeg.Data[5] = 0;
@@ -870,6 +871,9 @@ int mac_inquire_ack_proc(void* pro1030, CANDATAFORM rxmeg)
             csrxcanp->state_info.set_dev_num(0, rxmidframe.canframework.devaddr_8);
             csrxcanp->set_dev_status(rxmidframe.canframework.devaddr_8, DEV_ON_LINE);
             csrxcanp->set_devonline_num(rxmidframe.canframework.devaddr_8);
+            get_boot_v = rxmeg.Data[1] << 8 | rxmeg.Data[0];
+            get_app_v  = rxmeg.Data[3] << 8 | rxmeg.Data[2];
+            csrxcanp->state_info.set_dev_version_state(branch, csrxcanp->cszjorder[branch], get_boot_v, get_app_v);
             csrxcanp->cs_send_data(CMD_SEND_PARACORRECT, get_zj_index, get_cs_index, get_dev_addr, NULL, 0);
         }
     }
@@ -1563,23 +1567,26 @@ int dev_break_check_callback(void* pro1030, CANDATAFORM rxmeg)
  ***********************************************************************************/
 int dev_break_check_overtime(void* pro1030, CANDATAFORM rxmeg)
 {
-    cs_can* csrxcanp = (cs_can*) pro1030;
+    cs_can*        csrxcanp            = (cs_can*) pro1030;
+    static uint8_t break_location_last = 0;
     zprintf3(
-        " break_location = %d break_location_temp = %d\r\n", csrxcanp->break_location, csrxcanp->break_location_temp);
+        " break_location_last = %d break_location_temp = %d\r\n", break_location_last, csrxcanp->break_location_temp);
     if (csrxcanp->break_location_temp != 0)
     {
-        if (csrxcanp->break_location != csrxcanp->break_location_temp)
+        if (break_location_last == csrxcanp->break_location_temp)
         {
-            csrxcanp->break_location = csrxcanp->break_location_temp;
-        }
-        else
-        {
-
+            csrxcanp->break_location = break_location_last;
             csrxcanp->state_info.set_break_location(0, csrxcanp->break_location - 1);
             csrxcanp->break_location_temp = 0;
             csrxcanp->break_location      = 0;
-            //            zprintf1("set break location is %d\r\n", csrxcanp->break_location - 1);
         }
+        break_location_last           = csrxcanp->break_location_temp;
+        csrxcanp->break_location_temp = 0;
+    }
+    else
+    {
+        break_location_last      = 0;
+        csrxcanp->break_location = 0;
     }
     return 0;
 }
