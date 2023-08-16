@@ -124,6 +124,12 @@ int main(int argc, char* argv[])
     zprintf3("reset finish report add csrxcanp->reset_msg != RESET_SUCCESS condition \r\n");
     zprintf3("ptcan low version is %d\r\n", 0x04);
     zprintf3("break location report before break_location = 0\r\n");
+    zprintf3("ptcan low version is %d\r\n", 0x05);
+    zprintf3("break location overtime function is change\r\n");
+    zprintf3("ptcan low version is %d\r\n", 0x06);
+    zprintf3("the end device report version\r\n");
+    zprintf3("ptcan low version is %d\r\n", 0x07);
+    zprintf3("del overtime frame\r\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);
