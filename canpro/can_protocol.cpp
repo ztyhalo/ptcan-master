@@ -141,18 +141,12 @@ int canpro_time_callback(CANp_TIME_ET* tmpara)
     {
         if (tmpara->father->errbuf[i].canhead.overcallbacfun != NULL)
         {
-            zprintf1("tmpara->father->errbuf[0] = %x\r\n", tmpara->father->errbuf[0].candata.ExtId);
             tmpara->father->errbuf[i].canhead.overcallbacfun(
                 tmpara->father->errbuf[i].canhead.father, tmpara->father->errbuf[i].candata);
-            if (tmpara->father->errbuf[i].candata.ExtId == 0xc107f80)
-            {
-                zprintf1("================tmpara->father->errbuf[%d] = %x\r\n", tmpara->father->errsize,
-                    tmpara->father->errbuf[i].candata.ExtId);
-            }
         }
         else
         {
-            zprintf1("over back is NULL 0x%d\n", tmpara->father->errbuf[i].canhead.frameid);
+            zprintf1("over back is NULL 0x%x 0x%d\n", tmpara->father->errbuf[i].candata.ExtId,tmpara->father->errbuf[i].canhead.frameid);
         }
     }
 
@@ -258,17 +252,7 @@ int ncan_protocol::can_protocol_send(CANDATAFORM canprop)
         if (middata.sendnum < middata.canhead.repeatnum) middata.sendnum++;
         if (middata.canhead.overtime != -1)
         {
-            if (prolist.buf_write_data(middata) == 0)
-            {
-                if (middata.candata.ExtId == 0xc107f80)
-                {
-                    zprintf1("==============add %x to list right\r\n", middata.candata.ExtId);
-                }
-            }
-            else
-            {
-                zprintf1("==============add %x to list error\r\n", middata.candata.ExtId);
-            }
+            prolist.buf_write_data(middata);
         }
     }
     // printf("pro fram 0x%x============================================\n",middata.candata.ExtId);

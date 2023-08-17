@@ -24,7 +24,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 
-Can_Data* gCanInfo = NULL;
+Can_Data *gCanInfo = NULL;
 // Print_Server * netp = NULL;
 
 void SignalFunc(int var)
@@ -42,14 +42,14 @@ void SignalFunc(int var)
 }
 
 O_Timer timr;
-int     printf_time_callback(TEvent* tmpara)
+int     printf_time_callback(TEvent *tmpara)
 {
     nprintf("info is!\n");
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    QTextCodec* codec = QTextCodec::codecForName("UTF-8");
+    QTextCodec *codec = QTextCodec::codecForName("UTF-8");
 
     QTextCodec::setCodecForTr(codec);
     QTextCodec::setCodecForLocale(codec);
@@ -87,9 +87,9 @@ int main(int argc, char* argv[])
 
     string path = "/opt/ptcan_log/";
     int    ret;
-    if (access(path.c_str(), F_OK) == -1)
+    if (access(path.c_str( ), F_OK) == -1)
     {
-        int flag = mkdir(path.c_str(), S_IRWXU);
+        int flag = mkdir(path.c_str( ), S_IRWXU);
         if (flag == 0)
         {
             // printf("file create success %s\r\n",path.c_str());
@@ -109,33 +109,19 @@ int main(int argc, char* argv[])
     if (ret == true)
     {
         string pr_file = path + type;
-        debug_p->printf_init(pr_file.c_str(), 0);
+        debug_p->printf_init(pr_file.c_str( ), 0);
     }
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     zprintf1("\r\n");
     zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H, PTCAN_VERSION_M, PTCAN_VERSION_L);
     zprintf3("ptcan low version is %d\r\n", 0x00);
-    zprintf3("add shake thread\r\n");
-    zprintf3("ptcan low version is %d\r\n", 0x01);
-    zprintf3("del mac_24_used \r\n");
-    zprintf3("ptcan low version is %d\r\n", 0x02);
-    zprintf3("del debug \r\n");
-    zprintf3("ptcan low version is %d\r\n", 0x03);
-    zprintf3("reset finish report add csrxcanp->reset_msg != RESET_SUCCESS condition \r\n");
-    zprintf3("ptcan low version is %d\r\n", 0x04);
-    zprintf3("break location report before break_location = 0\r\n");
-    zprintf3("ptcan low version is %d\r\n", 0x05);
-    zprintf3("break location overtime function is change\r\n");
-    zprintf3("ptcan low version is %d\r\n", 0x06);
-    zprintf3("the end device report version\r\n");
-    zprintf3("ptcan low version is %d\r\n", 0x07);
-    zprintf3("del overtime frame\r\n");
+    zprintf3("sub frame form can0\r\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);
     signal(SIGTERM, SignalFunc);
 
-    gCanInfo = new Can_Data();
+    gCanInfo = new Can_Data( );
 
     if (gCanInfo == NULL)
     {
@@ -143,10 +129,10 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    int* point = &(gCanInfo->devkey.data_key);
+    int *point = &(gCanInfo->devkey.data_key);
     for (int i = 1; i < argc - 1; i++)
     {
-        qDebug() << "main argv[" << i << "]: " << argv[i];
+        qDebug( ) << "main argv[" << i << "]: " << argv[i];
         *point++ = atoi(argv[i]);
     }
 
@@ -167,11 +153,11 @@ int main(int argc, char* argv[])
         dir1 = "/opt/config/driver/device/" + type + "_1" + ".xml";
         dir2 = "/opt/config/driver/device/" + type + "_2" + ".xml";
     }
-    gCanInfo->creat_can_bus_pro();
-    gCanInfo->can_read_xml(QString(QString::fromLocal8Bit(dir.c_str())), QString(QString::fromLocal8Bit(dir1.c_str())),
-        QString(QString::fromLocal8Bit(dir2.c_str())));
+    gCanInfo->creat_can_bus_pro( );
+    gCanInfo->can_read_xml(QString(QString::fromLocal8Bit(dir.c_str( ))), QString(QString::fromLocal8Bit(dir1.c_str( ))),
+                           QString(QString::fromLocal8Bit(dir2.c_str( ))));
 
-    gCanInfo->can_app_init();
+    gCanInfo->can_app_init( );
 
 #else
     /*            string type = argv[8];
@@ -195,5 +181,5 @@ int main(int argc, char* argv[])
 //            gCanInfo->can_app_init();
 #endif
 
-    return a.exec();
+    return a.exec( );
 }

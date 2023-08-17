@@ -368,18 +368,17 @@ void cs_can::cs_send_data(uint func, int zjnum, int csnum, int dest, uint8_t* da
             send_data_ttlproc(sendmidframe, sendmiddata, data, size);
         }
         break;
-        case CMD_SEND_WORK_DEV_CHECK:
-            sendmidframe.canframework.devaddr_8 = 255;
-            sendmidframe.canframework.func_5    = func;
-            sendmidframe.canframework.csaddr_2  = csnum;
-            sendmidframe.canframework.zjaddr_3  = zjnum;
-            sendmidframe.canframework.dir_1     = 1;
+//        case CMD_SEND_WORK_DEV_CHECK:
+//            sendmidframe.canframework.devaddr_8 = 255;
+//            sendmidframe.canframework.func_5    = func;
+//            sendmidframe.canframework.csaddr_2  = csnum;
+//            sendmidframe.canframework.zjaddr_3  = zjnum;
+//            sendmidframe.canframework.dir_1     = 1;
 
-            sendmiddata.ExtId = sendmidframe.canframeid;
-            sendmiddata.IDE   = 1;
-            zprintf1("!!!!!!!!!!!!!!!!!!!!send work check 01  %x\r\n", sendmiddata.ExtId);
-            pro_p->can_protocol_send(sendmiddata);
-            break;
+//            sendmiddata.ExtId = sendmidframe.canframeid;
+//            sendmiddata.IDE   = 1;
+//            pro_p->can_protocol_send(sendmiddata);
+//            break;
         case CMD_SEND_BREAK_CHECK:
             sendmidframe.canframework.devaddr_8 = 255;
             sendmidframe.canframework.func_5    = func;
@@ -868,7 +867,7 @@ int mac_inquire_ack_proc(void* pro1030, CANDATAFORM rxmeg)
             // TODO: zj
             csrxcanp->cszjorder[0]++;
             csrxcanp->state_info.set_dev_type(0, rxmidframe.canframework.devaddr_8 - 1, rxmeg.Data[4]);
-            zprintf3("set normal 03 mac check\r\n");
+            zprintf1("set normal 03 mac check\r\n");
             csrxcanp->state_info.set_dev_num(0, rxmidframe.canframework.devaddr_8);
             csrxcanp->set_dev_status(rxmidframe.canframework.devaddr_8, DEV_ON_LINE);
             csrxcanp->set_devonline_num(rxmidframe.canframework.devaddr_8);
@@ -890,7 +889,7 @@ int macreqdata_overtimeproc(void* pro1030, CANDATAFORM overmeg)
     Q_UNUSED(overmeg);
     if (csrxcanp->csstate != CS_CAN_NORMAL)
     {
-        zprintf3("mac check time over\n");
+        zprintf1("mac check time over\n");
         csrxcanp->csstate = CS_CAN_MACREQ;
         sem_post(&csrxcanp->statechg);
     }
@@ -1027,7 +1026,6 @@ void read_reg_entry(cs_can* csrxcanp, CANDATAFORM rxmeg)
         devtyle = csrxcanp->ndev_map.val(sourceid).type;
         if (devtyle == CS_DEV)
         {
-            // zprintf1("error: read reg cv for cs dev \r\n");
             return;
         }
         else
@@ -1329,7 +1327,6 @@ int break_location_report_frameproc(void* pro1030, CANDATAFORM rxmeg)
         }
         if (cmd == 0x03)
         {
-            zprintf1("\\\\\\\\tail location is %d\r\n", location);
             csrxcanp->state_info.set_tail_location(branch, location);
             csrxcanp->state_info.set_bs_location(branch, location);
             csrxcanp->state_info.set_termal_vol(branch, 0);
@@ -1511,6 +1508,8 @@ int dev_break_check_callback(void* pro1030, CANDATAFORM rxmeg)
     uint8_t        get_dev_addr, get_zj_index, get_cs_index;
     static uint8_t dc_status_previous = 0;
     uint8_t        dc_status_current  = 0;
+    int            slave_io_num_tmp;
+    bool           lock_status;
     tbyte_swap((uint16_t*) rxmeg.Data, rxmeg.DLC);
     rxmidframe.canframeid = rxmeg.ExtId;
 
@@ -1523,11 +1522,11 @@ int dev_break_check_callback(void* pro1030, CANDATAFORM rxmeg)
     if (get_dev_addr == 1) // CS直接退出
     {
         dc_status_previous = 0;
-        line_addr          = 1;
-        return 0;
+        line_addr          = 0;
     }
-    if ((line_addr + 1) != get_dev_addr) //号不连续
+    if ((csrxcanp->cszjorder_temp[branch] + 1) != get_dev_addr || csrxcanp->csstate != CS_CAN_NORMAL || csrxcanp->reset_state == DEV_RESET_ING) //号不连续
     {
+        zprintf1("===error===: del 31 cmd with overtime\r\n");
         checkframe                        = rxmidframe;
         checkframe.canframework.devaddr_8 = 255;
         checkframe.canframework.csaddr_2  = 0;
@@ -1537,9 +1536,7 @@ int dev_break_check_callback(void* pro1030, CANDATAFORM rxmeg)
         csrxcanp->pro_p->pro_del_buf_frame(checkframe.canframeid, 1);
         return 0;
     }
-    line_addr++;
-
-    if ((rxmeg.Data[0] >> 2) & 0x01)
+    if ((rxmeg.Data[2] >> 2) & 0x01)
     {
         dc_status_current = 1;
     }
@@ -1552,8 +1549,64 @@ int dev_break_check_callback(void* pro1030, CANDATAFORM rxmeg)
     {
         csrxcanp->break_location_temp = get_dev_addr;
     }
-
     dc_status_previous = dc_status_current;
+
+    uint16_t devtype = 0;
+    devtype          = rxmeg.Data[1];
+    csrxcanp->csmacorder_temp++;
+    csrxcanp->cszjorder_temp[branch]++;
+
+    if (rxmeg.Data[2] & 0x01)
+    {
+        lock_status = 0;
+    }
+    else
+    {
+        lock_status = 1;
+    }
+    csrxcanp->state_info.set_bs_state(branch, get_dev_addr - 1, lock_status);
+    if ((devtype == CS_DEV) || (devtype == TK236_IOModule_Salve) || (devtype == DEV_256_IO_LOCK) ||
+        (devtype == DEV_256_IO_PHONE) || (devtype == TERMINAL))
+    {
+        if (devtype != TERMINAL)
+        {
+            slave_io_num_tmp = ++csrxcanp->slave_io_num_temp[branch];
+            csrxcanp->csioorder_temp++;
+
+            if (get_zj_index)
+            {
+                slave_io_num_tmp |= FATHER_DEV_MAX << (get_cs_index - 2);
+            }
+        }
+    }
+    if (devtype == CS_DEV)
+    {
+        int     cs_num  = 0;
+        uint8_t tmp_key = get_cs_index + (get_zj_index << 2);
+        csrxcanp->mac_cszd_have.val(tmp_key).mac_cs_have_tmp++;
+        cs_num = csrxcanp->mac_cszd_have.val(0).mac_cs_have_tmp +
+                 csrxcanp->mac_cszd_have.val(6).mac_cs_have_tmp +
+                 csrxcanp->mac_cszd_have.val(7).mac_cs_have_tmp;
+        csrxcanp->mac_cs_num_temp = cs_num;
+    }
+
+//    if (devtype == TERMINAL)
+//    {
+//        checkframe                        = rxmidframe;
+//        checkframe.canframework.devaddr_8 = 255;
+//        checkframe.canframework.csaddr_2  = 0;
+//        checkframe.canframework.zjaddr_3  = 0;
+//        checkframe.canframework.dir_1     = 1;
+//        checkframe.canframework.ack_1     = 0;
+//        csrxcanp->pro_p->pro_del_buf_frame(checkframe.canframeid, 1);
+//        if (csrxcanp->mac_cszd_have.val(0).mac_terminal_have == 0)
+//        {
+//            csrxcanp->state_info.set_tail_location(branch, 0);
+//            csrxcanp->mac_cszd_have.val(0).mac_terminal_have = 1;
+//            csrxcanp->add_default_dev(get_zj_index, get_cs_index, get_dev_addr, 0, devtype);
+//        }
+//        csrxcanp->cs_send_data(CMD_SEND_PARACORRECT, get_zj_index, get_cs_index, get_dev_addr, NULL, 0);
+//    }
     return 0;
 }
 
@@ -1583,136 +1636,7 @@ int dev_break_check_overtime(void* pro1030, CANDATAFORM rxmeg)
         break_location_last      = 0;
         csrxcanp->break_location = 0;
     }
-    return 0;
-}
 
-/***********************************************************************************
- * 函数名：dev_work_check_callback
- * 功能：工作模式设备查询回调
- ***********************************************************************************/
-int dev_work_check_callback(void* pro1030, CANDATAFORM rxmeg)
-{
-    cs_can*        csrxcanp     = (cs_can*) pro1030;
-    int            config_devid = 0, slave_io_num_tmp;
-    CS_BRANCH_TYPE branch;
-    CANFRAMEID     rxmidframe;
-    CANFRAMEID     checkframe;
-    uint8_t        get_dev_addr, get_zj_index, get_cs_index;
-    static uint8_t receive_teminal_cnt = 0;
-    tbyte_swap((uint16_t*) rxmeg.Data, rxmeg.DLC);
-    rxmidframe.canframeid = rxmeg.ExtId;
-
-    branch = csrxcanp->get_branch(rxmidframe);
-
-    get_dev_addr = rxmidframe.canframework.devaddr_8;
-    get_zj_index = rxmidframe.canframework.zjaddr_3;
-    get_cs_index = rxmidframe.canframework.csaddr_2;
-    if (csrxcanp->csstate == CS_CAN_NORMAL) // line out,and you need send 03 find line out location
-    {
-        if (((csrxcanp->cszjorder_temp[branch] + 1) != get_dev_addr && csrxcanp->csdevtyle == 0) ||
-            csrxcanp->reset_state == DEV_RESET_ING)
-        {
-            csrxcanp->csmacstate = MAC_ORDER_ERR;
-            zprintf1("dev check receive terminal %d\r\n", receive_teminal_cnt);
-            zprintf1("|||error|||----- get_dev_addr = %d \r\n", get_dev_addr);
-            checkframe                        = rxmidframe;
-            checkframe.canframework.devaddr_8 = 255;
-            checkframe.canframework.csaddr_2  = 0;
-            checkframe.canframework.zjaddr_3  = 0;
-            checkframe.canframework.dir_1     = 1;
-            checkframe.canframework.ack_1     = 0;
-            csrxcanp->pro_p->pro_del_buf_frame(checkframe.canframeid, 1);
-            return 0;
-        }
-        else
-        {
-            uint16_t devtype = 0;
-            devtype          = rxmeg.Data[1];
-            csrxcanp->csmacorder_temp++;
-            csrxcanp->cszjorder_temp[branch]++;
-            if (rxmeg.Data[2] == 0x01)
-            {
-                csrxcanp->data_p->set_share_data_value(csrxcanp->slave_io_num[branch] - 1,
-                    get_zj_index ? get_cs_index - 1 : 0, get_dev_addr, rxmeg.Data[3] & 0x01);
-                csrxcanp->state_info.set_bs_state(branch, get_dev_addr - 1, rxmeg.Data[2] & 0x01);
-            }
-            if ((devtype == CS_DEV) || (devtype == TK236_IOModule_Salve) || (devtype == DEV_256_IO_LOCK) ||
-                (devtype == DEV_256_IO_PHONE) || (devtype == TERMINAL))
-            {
-                if (devtype != TERMINAL)
-                {
-                    slave_io_num_tmp = ++csrxcanp->slave_io_num_temp[branch];
-                    csrxcanp->csioorder_temp++;
-
-                    if (get_zj_index)
-                    {
-                        slave_io_num_tmp |= FATHER_DEV_MAX << (get_cs_index - 2);
-                    }
-                }
-            }
-            if (devtype == CS_DEV)
-            {
-                int     cs_num  = 0;
-                uint8_t tmp_key = get_cs_index + (get_zj_index << 2);
-                csrxcanp->mac_cszd_have.val(tmp_key).mac_cs_have_tmp++;
-                cs_num = csrxcanp->mac_cszd_have.val(0).mac_cs_have_tmp +
-                         csrxcanp->mac_cszd_have.val(6).mac_cs_have_tmp +
-                         csrxcanp->mac_cszd_have.val(7).mac_cs_have_tmp;
-                csrxcanp->mac_cs_num_temp = cs_num;
-            }
-
-            if (devtype == TERMINAL)
-            {
-                zprintf1("dev check receive terminal1 %d\r\n", receive_teminal_cnt);
-                checkframe                        = rxmidframe;
-                checkframe.canframework.devaddr_8 = 255;
-                checkframe.canframework.csaddr_2  = 0;
-                checkframe.canframework.zjaddr_3  = 0;
-                checkframe.canframework.dir_1     = 1;
-                checkframe.canframework.ack_1     = 0;
-                csrxcanp->pro_p->pro_del_buf_frame(checkframe.canframeid, 1);
-                if (csrxcanp->mac_cszd_have.val(0).mac_terminal_have == 0)
-                {
-                    csrxcanp->state_info.set_tail_location(branch, 0);
-                    csrxcanp->mac_cszd_have.val(0).mac_terminal_have = 1;
-                    csrxcanp->add_default_dev(get_zj_index, get_cs_index, get_dev_addr, 0, devtype);
-                }
-                // TODO: zj
-                //                csrxcanp->cszjorder[0]++;
-                //                csrxcanp->state_info.set_dev_type(0, rxmidframe.canframework.devaddr_8 - 1,
-                //                rxmeg.Data[4]); csrxcanp->state_info.set_dev_num(0,
-                //                rxmidframe.canframework.devaddr_8);
-                //                csrxcanp->set_dev_status(rxmidframe.canframework.devaddr_8, DEV_ON_LINE);
-                //                csrxcanp->set_devonline_num(rxmidframe.canframework.devaddr_8);
-                csrxcanp->cs_send_data(CMD_SEND_PARACORRECT, get_zj_index, get_cs_index, get_dev_addr, NULL, 0);
-            }
-        }
-    }
-    else
-    {
-        csrxcanp->csmacstate = MAC_ORDER_ERR;
-        zprintf1("dev check receive terminal2 %d\r\n", receive_teminal_cnt);
-        checkframe                        = rxmidframe;
-        checkframe.canframework.devaddr_8 = 255;
-        checkframe.canframework.csaddr_2  = 0;
-        checkframe.canframework.zjaddr_3  = 0;
-        checkframe.canframework.dir_1     = 1;
-        checkframe.canframework.ack_1     = 0;
-        csrxcanp->pro_p->pro_del_buf_frame(checkframe.canframeid, 1);
-        return 0;
-    }
-    return 0;
-}
-/***********************************************************************************
- * 函数名：dev_work_check_overtime
- * 功能：工作模式设备查询超时
- ***********************************************************************************/
-int dev_work_check_overtime(void* pro1030, CANDATAFORM rxmeg)
-{
-    //    uint8_t reset_reason[2] = {0,0};
-    cs_can*        csrxcanp  = (cs_can*) pro1030;
-    static uint8_t error_cnt = 0;
-    Q_UNUSED(rxmeg);
     if (csrxcanp->mac_cszd_have.val(0).mac_terminal_have == 1)
     {
         return 0;
@@ -1725,52 +1649,18 @@ int dev_work_check_overtime(void* pro1030, CANDATAFORM rxmeg)
                 CS_REST_END_MEG, csrxcanp->reset_msg, sizeof(csrxcanp->reset_msg));
             csrxcanp->reset_msg[0] = RESET_FAIL;
         }
-        //        zprintf1(" =======================begin===========================\r\n");
-        //        for (uint8_t i = 0; i < 200; i++)
-        //        {
-        //            zprintf1(" line_add dc_status_current dc_status_previous   i= %d\r\n", i);
-        //        }
-        //        zprintf1(" =======================end=============================\r\n");
-        for (int i = 0; i < BRANCH_ALL; i++)
-        {
-            if (csrxcanp->cszjorder[i] != csrxcanp->cszjorder_temp[i])
-            {
-                csrxcanp->low_num[0] = i;
-                csrxcanp->low_num[1] = csrxcanp->cszjorder_temp[i];
-                if (csrxcanp->cszjorder[i] <= csrxcanp->cszjorder_temp[i])
-                { //数量增加
-                    csrxcanp->nconfig_map.val(0).dev_send_meg(
-                        LOW_NUM_MEG, csrxcanp->low_num, sizeof(csrxcanp->low_num));
-                }
-                else
-                { //数量减少
-                    if (csrxcanp->cf_devnum < csrxcanp->csioorder_temp)
-                    {
-                        if (++error_cnt > 2)
-                        {
-                            zprintf1("need reset\r\n");
-                        }
-                    }
-                    csrxcanp->nconfig_map.val(0).dev_send_meg(
-                        LOW_NUM_LOST, csrxcanp->low_num, sizeof(csrxcanp->low_num));
-                    if (csrxcanp->low_num[1] == 0)
-                    {
-                        // CS liveout
-                        csrxcanp->state_info.set_termal_vol(0, 0);
-                        csrxcanp->state_info.set_line_work_state(i, CS_WORK_STATUS_LIVEOUT);
-                    }
-                }
-                for (uint8_t j = csrxcanp->cszjorder_temp[i]; j < csrxcanp->cszjorder[i]; j++)
-                {
-                    csrxcanp->set_dev_status(j + 1, DEV_OFF_LINE);
-                }
-            }
-        }
 
         uint8_t tail_location;
 
         for (int i = 0; i < BRANCH_ALL; i++)
         {
+            if (csrxcanp->cszjorder[i] != csrxcanp->cszjorder_temp[i])
+            {
+                for (uint8_t j = csrxcanp->cszjorder_temp[i]; j < csrxcanp->cszjorder[i]; j++)
+                {
+                    csrxcanp->set_dev_status(j + 1, DEV_OFF_LINE);
+                }
+            }
             csrxcanp->state_info.set_dev_num(i, csrxcanp->cszjorder_temp[i]);
 
             csrxcanp->state_info.set_bs_num(i, csrxcanp->get_bs_mac_num(i));
@@ -1790,6 +1680,46 @@ int dev_work_check_overtime(void* pro1030, CANDATAFORM rxmeg)
     }
     return 0;
 }
+
+/***********************************************************************************
+ * 函数名：dev_work_check_callback
+ * 功能：工作模式设备查询回调
+ ***********************************************************************************/
+int receive_a_v_callback(void* pro1030, CANDATAFORM rxmeg)
+{
+    cs_can*        csrxcanp            = (cs_can*) pro1030;
+    uint16_t   devtyle = 0;
+    uint8_t    branch;
+    int        sourceid;
+    CANFRAMEID rxmidframe;
+    rxmidframe.canframeid = rxmeg.ExtId;
+    if (rxmidframe.canframework.zjaddr_3)
+    {
+        branch = rxmidframe.canframework.csaddr_2 - 1;
+    }
+    else
+    {
+        branch = 0;
+    }
+
+    if (csrxcanp->is_have_mac_dev(rxmidframe.canframework.zjaddr_3, rxmidframe.canframework.csaddr_2,
+            rxmidframe.canframework.devaddr_8, sourceid))
+    {
+        devtyle = csrxcanp->ndev_map.val(sourceid).type;
+        uint8_t value_v;
+        uint8_t value_c;
+        value_v = rxmeg.Data[0];
+        value_c = rxmeg.Data[2] | rxmeg.Data[3] << 8;
+        csrxcanp->state_info.set_dev_cv_state(branch, sourceid, value_v, value_c);
+        zprintf1("devtyle = %x addr = %d value_v = %d value_c = %d\r\n", devtyle, sourceid, value_v, value_c);
+    }
+    else
+    {
+        zprintf1("error:can not find dev %d\r\n", rxmidframe.canframework.devaddr_8);
+    }
+    return 0;
+}
+
 /***********************************************************************************
  * 函数名：heart_frame_over
  * 功能：心跳应答帧处理函数调用的子函数
@@ -1894,7 +1824,6 @@ void com_heart_nextprocess(CANPRODATA* rxprodata, cs_can* csrxcanp, uint8_t devn
                         .Dev_State |= 1;
                     if (rxmeg.Data[i] & (0x01 << j))
                     {
-                        zprintf1("heart dev %d is lock \r\n", (ttl - 1) * 64 + i * 8 + j);
                         (csrxcanp->state_info.share_state.data + branch)
                             ->devc_state[(ttl - 1) * 64 + i * 8 + j]
                             .Dev_State |= 4;
@@ -2133,6 +2062,7 @@ int max_heart_ackframe_proc(void* pro1030, CANDATAFORM rxmeg)
             if (csrxcanp->is_have_config_dev(csrxcanp->heartcout + 1, soureid) &&
                 csrxcanp->nconfig_map.val(soureid).para.type == TERMINAL)
             {
+                csrxcanp->cut_check_flag = 0;
                 heart_frame_over(rxprodata, csrxcanp);
             }
             else if (csrxcanp->csdevtyle == 0) //分次发送查询帧
@@ -2148,7 +2078,6 @@ int max_heart_ackframe_proc(void* pro1030, CANDATAFORM rxmeg)
                          (csrxcanp->ndev_map.val(soureid).type != DEV_256_IO_PHONE) &&
                          (csrxcanp->ndev_map.val(soureid).type != DEV_256_IO_LOCK) &&
                          (csrxcanp->ndev_map.val(soureid).type != TERMINAL));
-                //                zprintf1("csrxcanp->heartcout = %d\r\n", csrxcanp->heartcout);
                 if (csrxcanp->is_have_config_dev(csrxcanp->heartcout + 1, soureid))
                 {
                     dev_pro_p = &csrxcanp->nconfig_map.val(soureid);
@@ -2158,17 +2087,7 @@ int max_heart_ackframe_proc(void* pro1030, CANDATAFORM rxmeg)
                 else
                 {
                     csrxcanp->heartcout = 0;
-                    memset(csrxcanp->cszjorder_temp, 0, sizeof(csrxcanp->cszjorder_temp));
-                    memset(csrxcanp->slave_io_num_temp, 0, sizeof(csrxcanp->slave_io_num_temp));
-                    csrxcanp->mac_cs_num_temp = 0;
-                    csrxcanp->csioorder_temp  = 0;
-                    csrxcanp->csmacorder_temp = 0;
-
-                    csrxcanp->mac_cszd_have.get_order_datap(0)->clear();
-                    csrxcanp->mac_cszd_have.get_order_datap(1)->clear();
-                    csrxcanp->mac_cszd_have.get_order_datap(2)->clear();
-
-                    csrxcanp->cs_send_data(CMD_SEND_WORK_DEV_CHECK, 0, 0, 255, NULL, 0);
+                    csrxcanp->cut_check_flag = 1;
                 }
             }
         }
@@ -2196,7 +2115,6 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
     int     reset_mark           = 0;
     int     branch               = 0;
     int     devnum               = csrxcanp->heartcout + 1;
-    uint8_t work_check_send_flag = 0;
     zprintf1("heart over time\r\n");
     if (csrxcanp->reset_state == DEV_RESET_OVER && csrxcanp->reset_msg[0] == RESET_SUCCESS)
     {
@@ -2221,7 +2139,7 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
         {
             if (++dev_pro_p->errcount >= 2)
             {
-                zprintf3("1030dev %d heart overtime!\n", soureid + 1);
+                zprintf1("1030dev %d heart overtime!\n", soureid + 1);
                 dev_pro_p->devstate = 0;
 
                 devtype = csrxcanp->get_dev_type(soureid);
@@ -2233,6 +2151,7 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
                     }
                     else if (devtype == TERMINAL)
                     {
+                        csrxcanp->cut_check_flag = 0;
                         csrxcanp->state_info.set_termal_vol(dev_pro_p->para.id >> 8, 0);
                     }
                 }
@@ -2241,7 +2160,6 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
                     if (devtype != TERMINAL)
                     {
                         zprintf1("1030dev %d offline!\n", soureid + 1);
-
                         if (soureid + 1 == csrxcanp->devonnum)
                         {
                             if (csrxcanp->state_info.set_slaveio_num(branch, soureid ? (soureid - 1) : 0))
@@ -2251,7 +2169,7 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
                                     uint8_t dev_num[2];
                                     dev_num[0] = csrxcanp->get_config_low_num();
                                     dev_num[1] = soureid ? (soureid - 1) : 0;
-                                    zprintf3("onlin  %d %d !\n", dev_num[0], dev_num[1]);
+                                    zprintf1("onlin  %d %d !\n", dev_num[0], dev_num[1]);
                                 }
                             }
                             // csrxcanp->state_info.set_dev_num(branch, devnum ? (devnum -1) : 0);
@@ -2277,7 +2195,7 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
                     }
                     else
                     {
-                        work_check_send_flag = 1;
+                        csrxcanp->cut_check_flag = 1;
                     }
                     dev_pro_p->errcount = 0;
                 }
@@ -2289,7 +2207,7 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
             devtype             = csrxcanp->get_dev_type(soureid);
             if (devtype == TERMINAL)
             {
-                work_check_send_flag = 1;
+                csrxcanp->cut_check_flag = 1;
             }
         }
         if (reset_mark != 1)
@@ -2311,7 +2229,7 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
             }
             else
             {
-                work_check_send_flag = 1;
+                csrxcanp->cut_check_flag = 1;
                 csrxcanp->heartcout  = 0;
             }
         }
@@ -2319,20 +2237,6 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
     else
     {
         csrxcanp->heartcout = 0;
-    }
-    if (work_check_send_flag == 1)
-    {
-        memset(csrxcanp->cszjorder_temp, 0, sizeof(csrxcanp->cszjorder_temp));
-        memset(csrxcanp->slave_io_num_temp, 0, sizeof(csrxcanp->slave_io_num_temp));
-        csrxcanp->mac_cs_num_temp = 0;
-        csrxcanp->csioorder_temp  = 0;
-        csrxcanp->csmacorder_temp = 0;
-
-        csrxcanp->mac_cszd_have.get_order_datap(0)->clear();
-        csrxcanp->mac_cszd_have.get_order_datap(1)->clear();
-        csrxcanp->mac_cszd_have.get_order_datap(2)->clear();
-        zprintf1("!!!!!!!!!!!!!!!!!!!!send work check 02\r\n");
-        csrxcanp->cs_send_data(CMD_SEND_WORK_DEV_CHECK, 0, 0, 255, NULL, 0);
     }
     return 0;
 }
@@ -2410,6 +2314,7 @@ int slavereset_frame_proc(void* pro1030, CANDATAFORM rxmeg)
     }
     else
     {
+        zprintf1("send mac check frame\r\n");
         csrxcanp->cs_send_data(CMD_SEND_MACCHECK, 0, 0, 255, NULL, 0);
     }
     return 0;
@@ -2436,7 +2341,6 @@ int cs_can::cs_can_reset_sem(void)
 {
     if (init_over == 1)
     {
-        zprintf1("reset_state = %d\r\n", reset_state);
         if (reset_state != DEV_RESET_ING)
         {
             reset_state = DEV_RESET_ING;
@@ -2552,10 +2456,10 @@ void cs_can::bs_type_location_report(uint8_t branch, uint8_t bs_type, uint8_t bs
 
     if (branch == 0)
     {
-        zprintf3("bs report: branch = %d, bs_type = %d, bs_location = %d\n", branch, bs_type, bs_location);
-        zprintf3("bs report: branch = %d, bs_type_r = %d, bs_location_r = %d\n", branch, bs_type_r, bs_location_r);
         if (!(bs_type_r == bs_type && bs_location_r == bs_location))
         {
+            zprintf3("bs report: branch = %d, bs_type = %d, bs_location = %d\n", branch, bs_type, bs_location);
+            zprintf3("bs report: branch = %d, bs_type_r = %d, bs_location_r = %d\n", branch, bs_type_r, bs_location_r);
             data[0] = bs_type_r = bs_type;
             data[1] = bs_location_r = bs_location;
             nconfig_map.val(0).dev_send_meg(BS_REPORT_MEG, data, 2);
@@ -2603,7 +2507,6 @@ void cs_can::max_reset_data(void)
     //    mac_cszd_have.val(0).mac_cs_have = 0;
     //    mac_cszd_have.val(6).mac_cs_have = 0;
     //    mac_cszd_have.val(7).mac_cs_have = 0;
-    //    zprintf1("too deal!\n");
     memset(&csreqmark, 0x00, sizeof(REQDEVMK));
 
     state_info.set_all_state_clear();
@@ -2677,18 +2580,18 @@ void cs_can::send_configdata(void)
     uint i;
     uint configsize = csioorder;
 
-    zprintf3("configsize %d!\n", configsize);
+    zprintf3("|||cs_init|||configsize %d!\n", configsize);
     for (i = 0; i < configsize; i++)
     {
         if (nconfig_map.val(i).conf_state == CS_CONFIGING)
         {
-            zprintf3("can send 05: send config %d!\n", i);
+            zprintf3("|||cs_init|||can send 05: send config %d!\n", i);
             cs_send_data(CMD_SEND_CFGPARAM, 0, 0, nconfig_map.val(i).para.id, (uint8_t*) nconfig_map.val(i).config_p,
                 nconfig_map.val(i).configsize * 2);
             linuxDly(200);
         }
     }
-    zprintf3("send config over!\n");
+    zprintf3("|||cs_init|||send config over!\n");
 }
 
 /***********************************************************************************
@@ -2733,7 +2636,7 @@ void* max_reset_process(void* para)
             cs_pro_p->nconfig_map.val(0).dev_send_meg(CS_REST_MEG, NULL, 0);
             cs_pro_p->max_reset_data();
             reset_no_err = cs_pro_p->cs_init();
-            zprintf3("reset_no_err = %d\r\n", reset_no_err);
+            zprintf3("|||cs_init|||reset_no_err = %d\r\n", reset_no_err);
             if (reset_no_err == -1)
             {
                 //                if ( reset_cnt++ > 2 )
@@ -2765,19 +2668,23 @@ int mac_send_entry(void* para)
     return 1;
 }
 
-int tmp_mac_send_entry(void* para)
+int dev_break_send_entry(void* para)
 {
-    cs_can* cs_pro_p                               = ((cs_can*) para);
+    cs_can* cs_pro_p = ((cs_can*) para);
+
+    memset(cs_pro_p->cszjorder_temp, 0, sizeof(cs_pro_p->cszjorder_temp));
+    memset(cs_pro_p->slave_io_num_temp, 0, sizeof(cs_pro_p->slave_io_num_temp));
+    cs_pro_p->mac_cs_num_temp = 0;
+    cs_pro_p->csioorder_temp  = 0;
+    cs_pro_p->csmacorder_temp = 0;
+
+    cs_pro_p->mac_cszd_have.get_order_datap(0)->clear();
+    cs_pro_p->mac_cszd_have.get_order_datap(1)->clear();
+    cs_pro_p->mac_cszd_have.get_order_datap(2)->clear();
+
     cs_pro_p->mac_cszd_have.val(0).mac_cs_have_tmp = 0;
     cs_pro_p->mac_cszd_have.val(6).mac_cs_have_tmp = 0;
     cs_pro_p->mac_cszd_have.val(7).mac_cs_have_tmp = 0;
-    return 1;
-}
-
-int dev_break_send_entry(void* para)
-{
-    //    cs_can* cs_pro_p = ((cs_can*) para);
-    //    cs_pro_p->break_location_temp = 0;
     return 1;
 }
 
@@ -2853,23 +2760,25 @@ void* func(void* arg)
         }
         else
         {
-            time_delay         = 0;
+            if (cs_param->cut_check_flag == 0)
+            {
+                time_delay         = 0;
+            }
             button_press_shake = 0;
             cs_param->state_info.set_break_location(0, 0);
             cs_param->break_location = 0;
         }
-
-        if (cs_param->cs_jt_status != CS_JT_OK)
+        if ((cs_param->cs_jt_status != CS_JT_OK && button_press_shake == 2) || cs_param->cut_check_flag == 1)
         {
-            if (button_press_shake == 2)
+            if (time_delay == 0 || time_delay == 6)
             {
-                if (time_delay == 0 || time_delay == 6)
+                time_delay = 0;
+                if (cs_param->reset_state != DEV_RESET_ING)
                 {
-                    time_delay = 0;
                     cs_param->cs_send_data(CMD_SEND_BREAK_CHECK, 0, 0, 255, NULL, 0);
                 }
-                time_delay++;
             }
+            time_delay++;
         }
         else
         {
@@ -2918,7 +2827,7 @@ int cs_can::cs_config_init(void)
         {
             1,
             3,    //映射编号
-            2000, //超时时间
+            1200, //超时时间
             1,    //重发次数
             0x00, //应答帧
             this,
@@ -3064,18 +2973,6 @@ int cs_can::cs_config_init(void)
             NULL,                       //超时回调函数
             NULL,                       //发送条件回调函数
         },
-        /*****************工作中设备查询阵 功能码24******************************************/
-        {
-            1,
-            24,   //映射编号
-            1000, //超时时间
-            1,    //重发次数
-            0x00, //应答帧
-            this,
-            dev_work_check_callback, //接受回调函数
-            dev_work_check_overtime, //超时回调函数
-            tmp_mac_send_entry,      //发送条件回调函数
-        },
         /*****************心跳查询帧及应答 功能码30******************************************/
         {
             1,
@@ -3093,7 +2990,7 @@ int cs_can::cs_config_init(void)
         /*****************工作中设备查询阵 功能码24******************************************/
         {
             1,
-            31,   //映射编号
+            24,   //映射编号
             1000, //超时时间
             1,    //重发次数
             0x00, //应答帧
@@ -3101,6 +2998,18 @@ int cs_can::cs_config_init(void)
             dev_break_check_callback, //接受回调函数
             dev_break_check_overtime, //超时回调函数
             dev_break_send_entry,     //发送条件回调函数
+        },
+        /*****************工作中设备查询阵 功能码31******************************************/
+        {
+          1,
+          31,   //映射编号
+          0,    //超时时间
+          0,    //重发次数
+          0x00, //应答帧
+          this,
+          receive_a_v_callback, //接受回调函数
+          NULL,      //超时回调函数
+          NULL,      //发送条件回调函数
         }};
     pro_p->init_pro_frame(csmidinfo, sizeof(csmidinfo) / sizeof(CANPROHEAD));
     pro_p->idfunc[1] = get_cs_mapid;
@@ -3189,6 +3098,7 @@ int cs_can::cs_init(void)
     } while (csstate != CS_CAN_RESET);
 
     zprintf3("|||cs_init||| send mac check\r\n");
+    zprintf1("send mac check frame 1\r\n");
     cs_send_data(CMD_SEND_MACCHECK, 0, 0, 255, NULL, 0);
     do
     {
@@ -3212,6 +3122,7 @@ int cs_can::cs_init(void)
         }
         csmacorder = 0;
         csioorder  = 0;
+        cut_check_flag = 0;
         memset(slave_io_num, 0, BRANCH_ALL);
         memset(cszjorder, 0, BRANCH_ALL);
         ndev_map.clear();
@@ -3297,8 +3208,6 @@ int cs_can::cs_init(void)
         state_info.set_termal_vol(0, 0);
         state_info.set_line_work_state(0, CS_WORK_STATUS_LIVEOUT);
     }
-    //    zprintf3("cs success init file config dev num = %d, real config dev num = %d !\n", reset_msg[1],
-    //    reset_msg[2]); nconfig_map.val(0).dev_send_meg(CS_REST_END_MEG, reset_msg, sizeof(reset_msg));
     uint8_t bs_data[2] = {0};
     bs_data[0]         = state_info.get_bs_type(0);
     bs_data[1]         = state_info.get_bs_location(0);
@@ -3362,6 +3271,7 @@ int dev1030_output(void* midp, soutDataUnit val)
         uint8_t  can_data[4]   = {0};
         can_data[0]            = reg_c_v_begin;
         can_data[2]            = read_offset;
+        zprintf1("read reg \r\n");
         pro->cs_send_data(CMD_SEND_READFUNC_HIGH, 0, 0, val.parentid, can_data, 4);
     }
     else
