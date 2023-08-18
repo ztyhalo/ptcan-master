@@ -326,6 +326,7 @@ class cs_can
     uint8_t            reset_msg[4];
     uint8_t            low_num[2];
     uint8_t            cut_check_flag;
+    uint8_t            break_send_status;
     uint8_t            break_location;
     uint8_t            break_location_temp;
     uint8_t            bs_button_report[4];
