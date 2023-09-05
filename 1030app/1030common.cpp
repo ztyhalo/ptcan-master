@@ -185,6 +185,7 @@ int CAN_DEV_APP::set_share_data(void)
 {
     int i;
     if (devdata_p == NULL) return -1;
+    printf("slaveio_order = %d\r\n",slaveio_order);
     for (i = 1; i <= para.innum; i++)
     {
         devdata_p->set_share_data_value(slaveio_order - 1, 0, i, get_input_data(i));

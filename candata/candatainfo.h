@@ -48,7 +48,8 @@ struct can_bus_para_t
     Define_Field(6, string, frametype)
     Define_Field(7, string, frameorder)
     Define_Field(8, int, auto_reset)
-    Define_Metadata(8)
+    Define_Field(9, int, heart_ok)
+    Define_Metadata(9)
 
     Define_Enum(1, 1, 1000000, 0)
     Define_Enum(2, 1, 800000, 1)

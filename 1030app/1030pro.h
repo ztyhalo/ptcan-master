@@ -324,7 +324,7 @@ class cs_can
     pthread_t          thread_shake; //复位id
     int                polltimer_id; //论询定时器id
     uint8_t            reset_msg[4];
-    uint8_t            low_num[2];
+//    uint8_t            low_num[2];
     uint8_t            cut_check_flag;
     uint8_t            break_send_status;
     uint8_t            break_location;
@@ -332,6 +332,14 @@ class cs_can
     uint8_t            bs_button_report[4];
     uint8_t            bs_type_r     = 0xff;
     uint8_t            bs_location_r = 0xff;
+    uint8_t            heart_check_last_id;
+    uint8_t            cut_location_shake[2];
+    uint8_t            heart_ok_g[255];
+    uint8_t            heart_error_count_g[255];
+    bitset< HEART_MAX > framark[255];
+
+
+
     ncan_protocol*     pro_p; //使用的can协议指针
     BS_Dev             bs100info;
     TK_IO_Dev*         tk100io; // tk100的io模块
@@ -390,6 +398,8 @@ class cs_can
     uint16_t get_dev_type(uint8_t devid);
     void     set_dev_status(uint8_t devid, uint8_t state);
     void     set_dev_state(uint8_t devid, uint8_t state);
+    void     set_dev_map_state(uint8_t devid, uint8_t state);
+
     void     set_devonline_num(uint8_t val);
     void     reset_all_dev(void);
 

@@ -543,6 +543,7 @@ enum{
     LOW_NUM_LOST,           //下设备丢失
     CONFIG_ERROR,           //配置错误
     RESET_REASON,
+    REPROT_CAN_ERROR,       //CAN错误
     DEV_PROGRAM_ERROR       //设备程序错误
 //    IO_REPORT_AUTO,         //IO输入主动上报
 //    BS_BUTTON_MSG,          //闭锁按钮主动上报

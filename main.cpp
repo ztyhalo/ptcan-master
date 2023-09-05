@@ -114,12 +114,10 @@ int main(int argc, char* argv[])
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     zprintf1("\r\n");
     zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H, PTCAN_VERSION_M, PTCAN_VERSION_L);
-    zprintf3("ptcan low version is %d\r\n", 0x00);
-    zprintf3("sub frame form can0\r\n");
     zprintf3("ptcan low version is %d\r\n", 0x01);
-    zprintf3("break send condition\r\n");
+    zprintf3("add reset reason\r\n");
     zprintf3("ptcan low version is %d\r\n", 0x02);
-    zprintf3("cut_check_flag = 0\r\n");
+    zprintf3("heart check change\r\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);
