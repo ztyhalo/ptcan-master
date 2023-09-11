@@ -1927,11 +1927,12 @@ void heart_nonextprocess(CANPRODATA* rxprodata, cs_can* csrxcanp, uint8_t devnum
         can_error_data[get_dev_addr - 1][0] = get_dev_addr;
         can_error_data[get_dev_addr - 1][1] += (rxmeg.Data[4] >> 4) & 0x0F;
         can_error_data[get_dev_addr - 1][2] += rxmeg.Data[4] & 0x0F;
-        can_error_data[get_dev_addr - 1][3] = (rxmeg.Data[7] >> 4) & 0x0F;
-        can_error_data[get_dev_addr - 1][4] = rxmeg.Data[7] & 0x0F;
 
-        can_error_data[get_dev_addr - 1][5] = (rxmeg.Data[6] >> 4) & 0x0F;
-        can_error_data[get_dev_addr - 1][6] = rxmeg.Data[6] & 0x0F;
+        can_error_data[get_dev_addr - 1][3] += (rxmeg.Data[7] >> 4) & 0x0F;
+        can_error_data[get_dev_addr - 1][4] += rxmeg.Data[7] & 0x0F;
+
+        can_error_data[get_dev_addr - 1][5] += (rxmeg.Data[6] >> 4) & 0x0F;
+        can_error_data[get_dev_addr - 1][6] += rxmeg.Data[6] & 0x0F;
 
         csrxcanp->nconfig_map.val(0).dev_send_meg(
             REPROT_CAN_ERROR, can_error_data[get_dev_addr - 1], sizeof(can_error_data[0]));
@@ -2270,9 +2271,13 @@ int slavereset_frame_proc(void* pro1030, CANDATAFORM rxmeg)
             reset_reason[1] = csrxcanp->auto_reset;
             reset_reason[2] = get_dev_addr;
             reset_reason[3] = devtype;
-            if (((rxmeg.Data[3] >> 4) & 0x0F) == 0xFF)
+            if (((rxmeg.Data[3] >> 4) & 0x0F) == 0x0F)
             {
                 reset_reason[4] = 7;
+            }
+            else
+            {
+                reset_reason[4] = (rxmeg.Data[3] >> 4) & 0x0F;
             }
             zprintf3("2222222222222222222222222222222222222reset reason is %x\r\n", reset_reason[4]);
             csrxcanp->nconfig_map.val(0).dev_send_meg(RESET_REASON, reset_reason, sizeof(reset_reason));
