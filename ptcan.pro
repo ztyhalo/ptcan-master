@@ -41,7 +41,7 @@ linux-g++{
 }
 
 DEFINES += NO_LOCK_ERROR
-
+#DEFINES += END_NO_RESET
 INCLUDEPATH = .\
         mutex\
         epoll\

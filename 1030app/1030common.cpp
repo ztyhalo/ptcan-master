@@ -185,7 +185,7 @@ int CAN_DEV_APP::set_share_data(void)
 {
     int i;
     if (devdata_p == NULL) return -1;
-    printf("slaveio_order = %d\r\n",slaveio_order);
+    //    printf("slaveio_order = %d\r\n",slaveio_order);
     for (i = 1; i <= para.innum; i++)
     {
         devdata_p->set_share_data_value(slaveio_order - 1, 0, i, get_input_data(i));
@@ -209,7 +209,7 @@ void CAN_DEV_APP::dev_send_meg(uint8_t megtype, uint8_t* data, uint16_t size)
     }
     sMsgUnit    pkt;
     Dev_Message devmeg(para.type);
-    zprintf3("===report===: megtype = %d,data = ", megtype);
+    zprintf1("===report===: megtype = %d,data = ", megtype);
     for (uint8_t i = 0; i < size; i++)
     {
         zprintf3(" %x ", data[i]);
@@ -553,7 +553,7 @@ void Max_State_Pro::set_bs_state(uint8_t branch, uint8_t addr, uint8_t state)
     if (state)
     {
         (share_state.data + branch)->devc_state[addr].Dev_State |= 4;
-        zprintf3("BS_Buttion dev %d is lock \r\n", addr);
+        // zprintf3("BS_Buttion dev %d is lock \r\n", addr);
         (share_state.data + branch)->line_state.BS_Buttion[addr / 8] |= (1 << (addr % 8));
     }
     else

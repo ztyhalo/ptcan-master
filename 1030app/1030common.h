@@ -12,8 +12,8 @@
 using namespace std;
 
 #define PTCAN_VERSION_H 1
-#define PTCAN_VERSION_M 4
-#define PTCAN_VERSION_L 9
+#define PTCAN_VERSION_M 5
+#define PTCAN_VERSION_L 5
 
 #define PT_INPUTPARA_MAX  5
 #define PT_OUTPUTPARA_MAX 1
@@ -31,17 +31,17 @@ using namespace std;
 
 #define CS_INDATA_SIZE  1
 #define CS_OUTDATA_SIZE 1
-#define CS_POLL_HEAD    1    // 16bit为单位
+#define CS_POLL_HEAD    1 // 16bit为单位
 
 #define CS_CONFIG_BUF 1
 
-#define CONFIG_BUF_MAX \
+#define CONFIG_BUF_MAX                                                                                                 \
     (CONF_HEAD + (CSDEV_INNODE_NUM * PT_INPUTPARA_MAX + CSDEV_OUTNODE_NUM * PT_OUTPUTPARA_MAX) + CONF_TAIL)
 #define CSREG_BUF_MAX (CSDEV_INNODE_NUM * CS_INDATA_SIZE + CSDEV_OUTNODE_NUM * CS_OUTDATA_SIZE)
 
-#define DEVPOLLSIZE(devtyle) \
+#define DEVPOLLSIZE(devtyle)                                                                                           \
     ((comdevio[devtyle].innum * CS_INDATA_SIZE + comdevio[devtyle].outnum * CS_OUTDATA_SIZE + CS_POLL_HEAD) * 2)
-#define INNODEINFO(x) ((x)*PT_INPUTPARA_MAX + CONF_HEAD)
+#define INNODEINFO(x) ((x) *PT_INPUTPARA_MAX + CONF_HEAD)
 
 #define SET_NTH_BIT(x, n)   (x | 1U << n)
 #define CLEAR_NTH_BIT(x, n) (x & ~(1U << n))
@@ -67,8 +67,8 @@ enum
 typedef enum
 {
     BRANCH_SELF = 0,
-    BRANCH_ZJ,    // 本沿线中继后的CS2
-    BRANCH_LS,    // 本沿线中继后的LS
+    BRANCH_ZJ, // 本沿线中继后的CS2
+    BRANCH_LS, // 本沿线中继后的LS
     BRANCH_ALL
 } CS_BRANCH_TYPE;
 
@@ -179,50 +179,48 @@ typedef enum
 
 class CAN_DEV_APP
 {
-public:
+  public:
     uint16_t  dev_off;
-    uint8_t   zjnum;            // 设备中继级数
-    uint8_t   csnum;            // 设备CS通道
-    uint16_t  slaveio_order;    // 下位机序号
-    uint16_t  order_in_cfg;     // 在配置文件中的位置
+    uint8_t   zjnum;         // 设备中继级数
+    uint8_t   csnum;         // 设备CS通道
+    uint16_t  slaveio_order; // 下位机序号
+    uint16_t  order_in_cfg;  // 在配置文件中的位置
     uint8_t   devenable;
     uint8_t   errcount;
     uint8_t   devstate;
-    uint8_t   mac_state;     // mac查询应答状态
-    uint8_t   conf_state;    // 设备的配置状态
-    uint8_t   heart_ok;      // 心跳ok标志
-    uint8_t   csmac[6];      // 设备的mac
-    uint16_t  cscrc;         // crc校验
+    uint8_t   mac_state;  // mac查询应答状态
+    uint8_t   conf_state; // 设备的配置状态
+    uint8_t   heart_ok;   // 心跳ok标志
+    uint8_t   csmac[6];   // 设备的mac
+    uint16_t  cscrc;      // crc校验
     uint16_t  configsize;
     uint16_t  recv_reg_begin;
     uint16_t  recv_reg_offset;
     uint16_t  recv_reg_data[4];
-    uint16_t *config_p;
-    uint16_t *iodata;
+    uint16_t* config_p;
+    uint16_t* iodata;
     //    uint8_t           config_type;      //the type in 236.xml, if not config this value is 0xFF
-    Max_State_Pro      *stateinfo;
-    MsgMng             *msgmng_p;
-    Pt_Devs_ShareData  *devdata_p;
-    bitset< HEART_MAX > framark;    // 接收帧完整性验证
+    Max_State_Pro*      stateinfo;
+    MsgMng*             msgmng_p;
+    Pt_Devs_ShareData*  devdata_p;
+    bitset< HEART_MAX > framark; // 接收帧完整性验证
     can_dev_para        para;
 
-public:
-    CAN_DEV_APP( )
+  public:
+    CAN_DEV_APP()
     {
         memset(this, 0x00, offsetof(CAN_DEV_APP, framark));
-        framark.reset( );
+        framark.reset();
         iodata    = NULL;
         config_p  = NULL;
-        msgmng_p  = MsgMng::GetMsgMng( );
+        msgmng_p  = MsgMng::GetMsgMng();
         stateinfo = NULL;
         devdata_p = NULL;
     }
-    ~CAN_DEV_APP( )
+    ~CAN_DEV_APP()
     {
-        if (config_p != NULL)
-            delete[] config_p;
-        if (iodata != NULL)
-            delete[] iodata;
+        if (config_p != NULL) delete[] config_p;
+        if (iodata != NULL) delete[] iodata;
     }
 
     int set_config_head(void)
@@ -240,7 +238,7 @@ public:
         config_p[0] = para.outnum | (para.innum << 8);
         config_p[1] = 0x7;
         config_p[2] = configsize - CONF_HEAD - CONF_TAIL;
-        config_p[3] = 0;    // 存放crc的地方
+        config_p[3] = 0; // 存放crc的地方
         return 0;
     }
 
@@ -258,27 +256,27 @@ public:
         config_p[0] = 0;
         config_p[1] = 0x7;
         config_p[2] = 0X01;
-        config_p[3] = 0;    // 存放crc的地方
+        config_p[3] = 0; // 存放crc的地方
         return 0;
     }
 
-    int get_innode_tyle(int node)    // 点从1开始排序
+    int get_innode_tyle(int node) // 点从1开始排序
     {
         INCOFPARA1 inparam;
         inparam.paraval = config_p[CONF_HEAD + (node - 1) * PT_INPUTPARA_MAX];
         return inparam.inconf.instyle1;
     }
 
-    int get_outnode_tyle(int node)    // 点从1开始排序
+    int get_outnode_tyle(int node) // 点从1开始排序
     {
         OUTCOFPARA outparam;
         outparam.oparaval = config_p[CONF_HEAD + para.innum * PT_INPUTPARA_MAX + (node - 1) * PT_OUTPUTPARA_MAX];
         return outparam.outconf.outstyle1;
     }
 
-    uint16_t get_input_data(int node)      // 点从1开始排序
+    uint16_t get_input_data(int node) // 点从1开始排序
     {
-        if (get_innode_tyle(node) == 0)    // 开关量
+        if (get_innode_tyle(node) == 0) // 开关量
         {
             IOPUTDATA ioputdata;
             ioputdata.iovalue = iodata[(node - 1) * CS_INDATA_SIZE];
@@ -293,11 +291,11 @@ public:
                 return ioputdata.iostate.value2 | 0x02;
             }
         }
-        else    // 频率量
+        else // 频率量
         {
             IOPUTDATA ioputdata;
             ioputdata.iovalue = iodata[(node - 1) * CS_INDATA_SIZE];
-            if (ioputdata.iovalue & 0x2000)    // 是否需要扩大20倍
+            if (ioputdata.iovalue & 0x2000) // 是否需要扩大20倍
             {
                 return ioputdata.iostate.freq12 & 0x7ff;
             }
@@ -308,7 +306,7 @@ public:
         }
     }
 
-    uint16_t get_output_data(int node)    // 点从1开始排序
+    uint16_t get_output_data(int node) // 点从1开始排序
     {
         if (get_outnode_tyle(node) == 0)
         {
@@ -326,12 +324,12 @@ public:
         }
     }
 
-    int  creat_config_info(CAN_DEV_INFO &info);
+    int  creat_config_info(CAN_DEV_INFO& info);
     int  set_default_config(uint8_t type);
     int  reset_default_config(uint8_t type);
     void reset_dev_data(void);
     int  set_share_data(void);
-    void dev_send_meg(uint8_t megtype, uint8_t *data, uint16_t size);
+    void dev_send_meg(uint8_t megtype, uint8_t* data, uint16_t size);
     int  dev_normal_process(void);
 };
 
@@ -388,18 +386,18 @@ enum
 
 class Max_State_Pro : public Dev_Map_T< char >
 {
-public:
+  public:
     int                             cs_have;
     uint8_t                         tatol_dev;
     QT_Share_MemT< Max_State_Data > share_state;
 
-public:
-    Max_State_Pro( )
+  public:
+    Max_State_Pro()
     {
         cs_have   = 0;
         tatol_dev = 0;
     }
-    ~Max_State_Pro( )
+    ~Max_State_Pro()
     {
         zprintf3("destory Max_State_Pro!\n");
     }
@@ -443,11 +441,11 @@ public:
     uint8_t       get_dev_num(int branch);
     uint8_t       get_dev_type(uint8_t branch, uint8_t num);
     uint8_t       get_bs_is_have(uint8_t branch);
-    PT_Dev_State *get_dev_info(uint id)
+    PT_Dev_State* get_dev_info(uint id)
     {
-        return ((PT_Dev_State *)get_dev_addr(id));
+        return ((PT_Dev_State*) get_dev_addr(id));
     }
 };
 
 extern const IONUM comdevio[CS_DEVSTY_MAX];
-#endif    // __1030COMMON_H__
+#endif // __1030COMMON_H__

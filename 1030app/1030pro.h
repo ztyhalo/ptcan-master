@@ -121,9 +121,9 @@ enum
     CMD_SEND_READFUNC_LOW,
     CMD_SEND_WRITEFUNC_LOW,
 
-    CMD_SEND_BREAK_CHECK  = 24,
-    CMD_SEND_HEARTCHECK     = 30,
-    CMD_SEND_A_V_REPORT    = 31,
+    CMD_SEND_BREAK_CHECK = 24,
+    CMD_SEND_HEARTCHECK  = 30,
+    CMD_SEND_A_V_REPORT  = 31,
 };
 
 enum
@@ -291,54 +291,53 @@ struct break_msg
 class cs_can
 {
   public:
-    CSCANSTATE         csstate;               // 1030协议初始化时的状态变迁
-    uint8_t            csid;                  // cs id 0,1,2
-    uint8_t            csdevtyle;             // cs dev style 0:100+cs 1:io
-    uint8_t            devonnum;              //该can总线下的设备数量
-    uint8_t            cf_devnum;             //配置的设备个数()
-    uint8_t            cf_file_num;           //配置文件配置的设备个数
-    uint8_t            cf_cs_num[BRANCH_ALL]; // 0:本沿线 1：本沿线中继后的沿线 2：CS中继后的LS
-    uint16_t           cf_endnum;             //重配的结束设备编号
-    uint8_t            line_num;
-    uint8_t            cs_jt_status;
-    uint8_t            csmacstate;                 // mac查询状态
-    uint8_t            csmacorder;                 //沿线总设备数
-    uint8_t            csioorder;                  // mac查询应答顺序编号
-    uint8_t            cszjorder[BRANCH_ALL];      // 0:本沿线 1：本沿线中继后的沿线 2：CS中继后的LS
-    uint8_t            slave_io_num[BRANCH_ALL];   // mac查询应答顺序编号
-    uint8_t            init_over;                  //初始化进程结束
-    uint8_t            mac_cs_num;                 // mac查询cs存在
-    uint8_t            mac_terminal_num;           // mac查询终端存在
-    uint8_t            csmacorder_temp;            // mac查询应答顺序编号
-    uint8_t            csioorder_temp;             // mac查询应答顺序编号
-    uint8_t            cszjorder_temp[BRANCH_ALL]; // mac查询应答顺序编号
-    uint8_t            slave_io_num_temp[BRANCH_ALL];       // mac查询应答顺序编号
-    uint8_t            mac_cs_num_temp;                     // mac查询cs存在
-    uint8_t            break_line_pretreatment[BRANCH_ALL]; //有闭锁按下时，断线预处理。
-    uint8_t            heartcout;                           //心跳发送顺序计数
-    uint8_t            reset_state;                         //复位状态
-    CSCONFERR          csconfstate;                         //配置状态
-    int                auto_reset;
-    pthread_t          initproid;    // 1030协议初始化线程id号
-    pthread_t          reset_id;     //复位id
-    pthread_t          thread_shake; //复位id
-    int                polltimer_id; //论询定时器id
-    uint8_t            reset_msg[4];
-//    uint8_t            low_num[2];
-    uint8_t            cut_check_flag;
-    uint8_t            break_send_status;
-    uint8_t            break_location;
-    uint8_t            break_location_temp;
-    uint8_t            bs_button_report[4];
-    uint8_t            bs_type_r     = 0xff;
-    uint8_t            bs_location_r = 0xff;
-    uint8_t            heart_check_last_id;
-    uint8_t            cut_location_shake[2];
-    uint8_t            heart_ok_g[255];
-    uint8_t            heart_error_count_g[255];
+    CSCANSTATE csstate;               // 1030协议初始化时的状态变迁
+    uint8_t    csid;                  // cs id 0,1,2
+    uint8_t    csdevtyle;             // cs dev style 0:100+cs 1:io
+    uint8_t    devonnum;              //该can总线下的设备数量
+    uint8_t    cf_devnum;             //配置的设备个数()
+    uint8_t    cf_file_num;           //配置文件配置的设备个数
+    uint8_t    cf_cs_num[BRANCH_ALL]; // 0:本沿线 1：本沿线中继后的沿线 2：CS中继后的LS
+    uint16_t   cf_endnum;             //重配的结束设备编号
+    uint8_t    line_num;
+    uint8_t    cs_jt_status;
+    uint8_t    csmacstate;                          // mac查询状态
+    uint8_t    csmacorder;                          //沿线总设备数
+    uint8_t    csioorder;                           // mac查询应答顺序编号
+    uint8_t    cszjorder[BRANCH_ALL];               // 0:本沿线 1：本沿线中继后的沿线 2：CS中继后的LS
+    uint8_t    slave_io_num[BRANCH_ALL];            // mac查询应答顺序编号
+    uint8_t    init_over;                           //初始化进程结束
+    uint8_t    mac_cs_num;                          // mac查询cs存在
+    uint8_t    mac_terminal_num;                    // mac查询终端存在
+    uint8_t    csmacorder_temp;                     // mac查询应答顺序编号
+    uint8_t    csioorder_temp;                      // mac查询应答顺序编号
+    uint8_t    cszjorder_temp[BRANCH_ALL];          // mac查询应答顺序编号
+    uint8_t    slave_io_num_temp[BRANCH_ALL];       // mac查询应答顺序编号
+    uint8_t    mac_cs_num_temp;                     // mac查询cs存在
+    uint8_t    break_line_pretreatment[BRANCH_ALL]; //有闭锁按下时，断线预处理。
+    uint8_t    heartcout;                           //心跳发送顺序计数
+    uint8_t    reset_state;                         //复位状态
+    CSCONFERR  csconfstate;                         //配置状态
+    int        auto_reset;
+    pthread_t  initproid;    // 1030协议初始化线程id号
+    pthread_t  reset_id;     //复位id
+    pthread_t  thread_shake; //复位id
+    int        polltimer_id; //论询定时器id
+    uint8_t    reset_msg[4];
+    //    uint8_t            low_num[2];
+    uint8_t             cut_check_flag;
+    uint8_t             break_send_status;
+    uint8_t             break_location;
+    uint8_t             break_location_temp;
+    uint8_t             bs_button_report[4];
+    uint8_t             bs_type_r     = 0xff;
+    uint8_t             bs_location_r = 0xff;
+    uint8_t             heart_check_last_id;
+    uint8_t             cut_location_shake[2];
+    uint8_t             heart_ok_g[255];
+    uint8_t             heart_error_count_g[255];
+    uint8_t             heart_print_mark; //心跳打印标记
     bitset< HEART_MAX > framark[255];
-
-
 
     ncan_protocol*     pro_p; //使用的can协议指针
     BS_Dev             bs100info;
@@ -400,8 +399,8 @@ class cs_can
     void     set_dev_state(uint8_t devid, uint8_t state);
     void     set_dev_map_state(uint8_t devid, uint8_t state);
 
-    void     set_devonline_num(uint8_t val);
-    void     reset_all_dev(void);
+    void set_devonline_num(uint8_t val);
+    void reset_all_dev(void);
 
     ~cs_can();
     void           add_mac_cszd_branch(int zjnum, int csnum);
