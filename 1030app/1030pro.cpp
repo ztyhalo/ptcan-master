@@ -1798,10 +1798,8 @@ void com_heart_nextprocess(CANPRODATA* rxprodata, cs_can* csrxcanp, uint8_t devn
 
     devtyle = csrxcanp->ndev_map.val(devnum).type;
 
-    //    zprintf1("csrxcanp->framark[%d] = %d\r\n", devnum, csrxcanp->framark[devnum]);
     if (csrxcanp->framark[devnum][ttl] == 1) //本设备重复的ttl心跳
     {
-        //        zprintf1("===error===:framark error %d ,%x\r\n", devnum, rxmeg.ExtId);
         return;
     }
     csrxcanp->is_have_config_dev(devnum + 1, config_id);
@@ -1810,8 +1808,7 @@ void com_heart_nextprocess(CANPRODATA* rxprodata, cs_can* csrxcanp, uint8_t devn
         case DEV_256_IO_LOCK:
         case DEV_256_IO_PHONE:
         case TK236_IOModule_Salve:
-            // printf("config_id = %d\r\n", config_id);
-            memcpy(&(csrxcanp->nconfig_map.val(config_id).iodata[ttl * 4]), rxmeg.Data, 8);
+            memcpy(&(csrxcanp->nconfig_map.val(config_id).iodata[ttl * 4]), rxmeg.Data, rxmeg.DLC);
             break;
         case TERMINAL:
             if (csrxcanp->reset_state == DEV_RESET_OVER && csrxcanp->reset_msg[0] == RESET_SUCCESS)
@@ -1955,26 +1952,19 @@ void heart_nonextprocess(CANPRODATA* rxprodata, cs_can* csrxcanp, uint8_t devnum
     }
     csrxcanp->state_info.set_bs_state(branch, get_dev_addr - 1, lock_status);
     //    zprintf1("receive dev %d type =%d\r\n", devnum, devtyle);
+    if (is_heartframe_correct(csrxcanp, devnum, ttl, rxmeg, devtyle) == 0)
+    {
+        zprintf1("nonext error! %d\r\n", devnum);
+        return;
+    }
+
     switch (devtyle)
     {
         case DEV_256_IO_LOCK:
         case DEV_256_IO_PHONE:
         case TK236_IOModule_Salve:
-            if (is_heartframe_correct(csrxcanp, devnum, ttl, rxmeg, devtyle) == 0)
-            {
-                zprintf1("io nonext error! %d\r\n", devnum);
-                return;
-            }
-            csrxcanp->is_have_config_dev(devnum + 1, config_id);
-            memcpy(&(csrxcanp->nconfig_map.val(config_id).iodata[ttl * 4]), rxmeg.Data, 8);
-            csrxcanp->nconfig_map.val(config_id).set_share_data();
             break;
         case TERMINAL:
-            if (is_heartframe_correct(csrxcanp, devnum, ttl, rxmeg, devtyle) == 0)
-            {
-                zprintf1("end nonext error!\r\n");
-                return;
-            }
             for (uint8_t i = 0; i < get_dev_addr; i++)
             {
                 devtype = csrxcanp->ndev_map.val(i).type;
@@ -1997,12 +1987,6 @@ void heart_nonextprocess(CANPRODATA* rxprodata, cs_can* csrxcanp, uint8_t devnum
             heart_frame_over(rxprodata, csrxcanp);
             break;
         case CS_DEV:
-            if (is_heartframe_correct(csrxcanp, devnum, ttl, rxmeg, devtyle) == 0)
-            {
-                // zprintf1("cs nonext error!\r\n");
-                return;
-            }
-            // zprintf1("cs no next ok!\r\n");
             break;
 
         case DEV_256_PHONE:
