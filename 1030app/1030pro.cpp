@@ -2021,6 +2021,10 @@ int max_heart_ackframe_proc(void* pro1030, CANDATAFORM rxmeg)
         return -1;
     }
     rxmidframe.canframeid = rxmeg.ExtId;
+    if (csrxcanp->csstate != CS_CAN_NORMAL)
+    {
+        return -1;
+    }
     //    zprintf1("receive source id is %d\r\n", get_dev_addr);
     if (get_dev_addr > csrxcanp->cszjorder[0])
     {
@@ -2102,6 +2106,10 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
     {
         csrxcanp->nconfig_map.val(0).dev_send_meg(CS_REST_END_MEG, csrxcanp->reset_msg, sizeof(csrxcanp->reset_msg));
         csrxcanp->reset_msg[0] = RESET_FAIL;
+    }
+    if (csrxcanp->csstate != CS_CAN_NORMAL)
+    {
+        return -1;
     }
     if (csrxcanp->cut_location_shake[1] == csrxcanp->heart_check_last_id &&
         csrxcanp->cut_location_shake[0] == csrxcanp->heart_check_last_id)
@@ -2594,29 +2602,20 @@ void* max_reset_process(void* para)
         reset_no_err = true;
         zprintf1("||||||||||||||||||||||||||||||wait reset_Sem|||||||||||||||||||||||||||\r\n");
         sem_wait(&cs_pro_p->reset_sem);
-        sleep(2);
-        zprintf1("||||||||||||||||||||||||||||||wait reset_Sem 1|||||||||||||||||||||||||||\r\n");
+
         for (int branch = 0; branch < BRANCH_ALL; branch++)
         {
             cs_pro_p->state_info.set_termal_vol(branch, 0);
             cs_pro_p->state_info.set_line_work_state(branch, CS_WORK_STATUS_LIVEOUT);
         }
-        zprintf1("||||||||||||||||||||||||||||||wait reset_Sem 2|||||||||||||||||||||||||||\r\n");
         cs_pro_p->delete_1030_dev_timer();
-        zprintf1("||||||||||||||||||||||||||||||wait reset_Sem 3 %d|||||||||||||||||||||||||||\r\n", reset_no_err);
+        sleep(2);
         while (reset_no_err != 0)
         {
             cs_pro_p->nconfig_map.val(0).dev_send_meg(CS_REST_MEG, NULL, 0);
             cs_pro_p->max_reset_data();
             reset_no_err = cs_pro_p->cs_init();
             zprintf3("|||cs_init|||reset_no_err = %d\r\n", reset_no_err);
-            if (reset_no_err == -1)
-            {
-                //                if ( reset_cnt++ > 2 )
-                //                {
-                //                    break;
-                //                }
-            }
             if (reset_no_err != 0)
             {
                 cs_pro_p->reset_msg[0] = RESET_FAIL;
