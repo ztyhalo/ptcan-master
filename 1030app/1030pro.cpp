@@ -1758,8 +1758,8 @@ void heart_frame_over(CANPRODATA* rxprodata, cs_can* csrxcanp)
     csrxcanp->heart_print_mark      = 0;
     csrxcanp->cut_location_shake[0] = 0;
     csrxcanp->cut_location_shake[1] = 0;
-
-    csrxcanp->csreqmark.csnumstate = 0;
+    csrxcanp->cut_location_shake[2] = 0;
+    csrxcanp->csreqmark.csnumstate  = 0;
     // printf("|||||||||||||||||||||||||||heartout 03\r\n");
     csrxcanp->heartcout           = 0;
     csrxcanp->heart_check_last_id = 0;
@@ -2084,11 +2084,11 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
     {
         return -1;
     }
-    int config_id  = 0;
-    int soure_id   = 0;
-    int devtype    = 0;
-    int reset_mark = 0;
+    int config_id = 0;
+    int soure_id  = 0;
+    int devtype   = 0;
     int bs_num = 0, io_num = 0;
+    int reset_mark;
     if (csrxcanp->heart_print_mark == 0)
     {
         zprintf1("heart check overtime %d %d\r\n", csrxcanp->heart_check_last_id, csrxcanp->reset_state);
@@ -2096,11 +2096,6 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
             "ndev_map size is %d,csrxcanp->cszjorder[0] = %d\r\n", csrxcanp->ndev_map.size(), csrxcanp->cszjorder[0]);
         csrxcanp->heart_print_mark = 1;
     }
-    //    if (csrxcanp->reset_state != DEV_RESET_OVER)
-    //    {
-    //        csrxcanp->reset_state = DEV_NO_RESET;
-    //        csrxcanp->cs_can_reset_sem();
-    //    }
 
     if (csrxcanp->reset_state == DEV_RESET_OVER && csrxcanp->reset_msg[0] == RESET_SUCCESS)
     {
@@ -2111,7 +2106,12 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
     {
         return -1;
     }
-    if (csrxcanp->cut_location_shake[1] == csrxcanp->heart_check_last_id &&
+    if (csrxcanp->cut_location_shake[0] != csrxcanp->heart_check_last_id)
+    {
+        zprintf3("heart check break location is %d\r\n", csrxcanp->heart_check_last_id);
+    }
+    if (csrxcanp->cut_location_shake[2] == csrxcanp->heart_check_last_id &&
+        csrxcanp->cut_location_shake[1] == csrxcanp->heart_check_last_id &&
         csrxcanp->cut_location_shake[0] == csrxcanp->heart_check_last_id)
     {
         csrxcanp->state_info.set_termal_vol(0, 0);
@@ -2142,9 +2142,6 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
         {
             for (uint8_t j = csrxcanp->heart_check_last_id; j < csrxcanp->cszjorder[0] - 1; j++)
             {
-                //                zprintf1(
-                //                    "heart j:%d,id:%d,type:%d\r\n", j, csrxcanp->ndev_map.val(j).id,
-                //                    csrxcanp->ndev_map.val(j).type);
                 csrxcanp->set_dev_map_state(j, DEV_OFF_LINE);
                 devtype = csrxcanp->ndev_map.val(j).type;
                 if (csrxcanp->is_have_config_dev(j, config_id))
@@ -2189,6 +2186,7 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
             }
         }
     }
+    csrxcanp->cut_location_shake[2] = csrxcanp->cut_location_shake[1];
     csrxcanp->cut_location_shake[1] = csrxcanp->cut_location_shake[0];
     csrxcanp->cut_location_shake[0] = csrxcanp->heart_check_last_id;
     csrxcanp->heart_check_last_id   = 0;
@@ -2265,14 +2263,18 @@ int slavereset_frame_proc(void* pro1030, CANDATAFORM rxmeg)
             reset_reason[3] = devtype;
             if (((rxmeg.Data[3] >> 4) & 0x0F) == 0x0F)
             {
-                reset_reason[4] = 7;
+                reset_reason[4] = 8;
             }
             else
             {
                 reset_reason[4] = (rxmeg.Data[3] >> 4) & 0x0F;
             }
-            zprintf3("2222222222222222222222222222222222222reset reason is %x\r\n", reset_reason[4]);
+            zprintf3("reset reason is %x\r\n", reset_reason[4]);
             csrxcanp->nconfig_map.val(0).dev_send_meg(RESET_REASON, reset_reason, sizeof(reset_reason));
+            if (reset_reason[4] == 7)
+            {
+                return 0;
+            }
         }
         csrxcanp->cs_can_reset_sem();
 #ifdef END_NO_RESET
@@ -2480,6 +2482,7 @@ void cs_can::max_reset_data(void)
     heart_check_last_id   = 0;
     cut_location_shake[0] = 0;
     cut_location_shake[1] = 0;
+    cut_location_shake[2] = 0;
     //    mac_cszd_have.val(0).mac_cs_have = 0;
     //    mac_cszd_have.val(6).mac_cs_have = 0;
     //    mac_cszd_have.val(7).mac_cs_have = 0;

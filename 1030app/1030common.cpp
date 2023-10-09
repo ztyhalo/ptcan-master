@@ -18,7 +18,6 @@ int CAN_DEV_APP::creat_config_info(CAN_DEV_INFO& info)
     para = info.para;
     if (para.type == CS_DEV)
     {
-
         set_cs_config_head();
         if (info.para.link_num & 0x0001)
         {

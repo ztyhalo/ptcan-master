@@ -24,7 +24,7 @@ using namespace std;
 #define READ_REG_MAX_NUM 200
 
 #define CONF_HEAD 4
-#define CONF_TAIL 1
+#define CONF_TAIL 0
 
 #define CSDEV_INNODE_NUM  16
 #define CSDEV_OUTNODE_NUM 16

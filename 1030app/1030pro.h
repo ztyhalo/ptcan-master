@@ -333,7 +333,7 @@ class cs_can
     uint8_t             bs_type_r     = 0xff;
     uint8_t             bs_location_r = 0xff;
     uint8_t             heart_check_last_id;
-    uint8_t             cut_location_shake[2];
+    uint8_t             cut_location_shake[3];
     uint8_t             heart_ok_g[255];
     uint8_t             heart_error_count_g[255];
     uint8_t             heart_print_mark; //心跳打印标记
