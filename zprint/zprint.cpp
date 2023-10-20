@@ -20,7 +20,7 @@ void PRINTF_CLASS::zprintf(const char* format, ...)
     }
 }
 
-void PRINTF_CLASS::printf_init(const char* name, int fd)
+void PRINTF_CLASS::printf_init(const char *name, int fd)
 {
     if (fd == 1) //标准输出
     {
@@ -39,7 +39,6 @@ void PRINTF_CLASS::printf_init(const char* name, int fd)
             //                printf("Removed %s.\n", name);
             //            else
             //                printf("Removed %s. failed!\n", name);
-
             pfd = fopen(name, "a+");
             if (pfd == NULL)
             {

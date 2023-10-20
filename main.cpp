@@ -49,6 +49,14 @@ int     printf_time_callback(TEvent* tmpara)
 
 int main(int argc, char* argv[])
 {
+
+    time_t timep;
+    struct tm *p;
+    char name[256] = {0};
+
+    time(&timep);//获取从1970至今过了多少秒，存入time_t类型的timep
+    p = localtime(&timep);//用localtime将秒数转化为struct tm结构体
+
     QTextCodec* codec = QTextCodec::codecForName("UTF-8");
 
     QTextCodec::setCodecForTr(codec);
@@ -82,9 +90,6 @@ int main(int argc, char* argv[])
     }
 
     string type = argv[8];
-
-    //         string pr_file = "/opt/config/usr/Par/" + type;
-
     string path = "/opt/ptcan_log/";
     int    ret;
     if (access(path.c_str(), F_OK) == -1)
@@ -92,23 +97,25 @@ int main(int argc, char* argv[])
         int flag = mkdir(path.c_str(), S_IRWXU);
         if (flag == 0)
         {
-            // printf("file create success %s\r\n",path.c_str());
             ret = true;
         }
         else
         {
-            // printf("file create error:%s\r\n",path.c_str());
             ret = false;
         }
     }
     else
     {
-        // printf("file is exist\r\n");
         ret = true;
     }
     if (ret == true)
     {
-        string pr_file = path + type;
+        string pr_file = path;
+        string delete_file;
+        delete_file = "find " + path + " -type f -mtime +30 -exec rm -rf {} \\;";
+        system(delete_file.c_str());
+        sprintf(name, "%s_%d%d%d%d%02d.log",type.c_str(),1900+p->tm_year,1+p->tm_mon,p->tm_mday,p->tm_hour,p->tm_min);//把格式化的时间写入字符数组中
+        pr_file += name;
         debug_p->printf_init(pr_file.c_str(), 0);
     }
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
@@ -118,6 +125,8 @@ int main(int argc, char* argv[])
     zprintf3("heart no next, io and slave not using data\r\n");
     zprintf3("ptcan low version is %d\r\n", 0x02);
     zprintf3("no ack if reset reason is core system\r\n");
+    zprintf3("ptcan low version is %d\r\n", 0x03);
+    zprintf3("add log time and delete file if its befor 30 days\r\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);

@@ -68,7 +68,7 @@ public:
             printf("close fd!\n");
         }
     }
-    void printf_init(const char * name, int fd);
+    void printf_init(const char *name, int fd);
     void zprintf(const char * format, ...);
     void timeprintf(const char * format, ...);
     void timemsprintf(const char * format, ...);
