@@ -2232,11 +2232,11 @@ int err_reportframe_proc(void* pro1030, CANDATAFORM rxmeg)
  ***********************************************************************************/
 int slavereset_frame_proc(void* pro1030, CANDATAFORM rxmeg)
 {
-    uint8_t    reset_reason[5] = {0, 0, 0, 0, 0};
-    uint8_t    get_dev_addr, get_zj_index, get_cs_index;
-    CANFRAMEID rxmidframe;
-
-    cs_can* csrxcanp = (cs_can*) pro1030;
+    uint8_t        reset_reason[5] = {0, 0, 0, 0, 0};
+    uint8_t        get_dev_addr, get_zj_index, get_cs_index;
+    CANFRAMEID     rxmidframe;
+    static uint8_t report_addr = 0;
+    cs_can*        csrxcanp    = (cs_can*) pro1030;
     if (csrxcanp == NULL)
     {
         return 0;
@@ -2261,6 +2261,7 @@ int slavereset_frame_proc(void* pro1030, CANDATAFORM rxmeg)
             reset_reason[1] = csrxcanp->auto_reset;
             reset_reason[2] = get_dev_addr;
             reset_reason[3] = devtype;
+            report_addr     = reset_reason[2];
             if (((rxmeg.Data[3] >> 4) & 0x0F) == 0x0F)
             {
                 reset_reason[4] = 8;
@@ -2276,6 +2277,28 @@ int slavereset_frame_proc(void* pro1030, CANDATAFORM rxmeg)
                 return 0;
             }
         }
+        else if (csrxcanp->reset_state == DEV_RESET_ING)
+        {
+            zprintf3("reset reason is %d %d %d\r\n", reset_reason[2], get_dev_addr, report_addr);
+            if (get_dev_addr < report_addr)
+            {
+                reset_reason[0] = PTCAN_RESET_SALVE;
+                reset_reason[1] = csrxcanp->auto_reset;
+                reset_reason[2] = get_dev_addr;
+                reset_reason[3] = devtype;
+                report_addr     = reset_reason[2];
+                if (((rxmeg.Data[3] >> 4) & 0x0F) == 0x0F)
+                {
+                    reset_reason[4] = 8;
+                }
+                else
+                {
+                    reset_reason[4] = (rxmeg.Data[3] >> 4) & 0x0F;
+                }
+                csrxcanp->nconfig_map.val(0).dev_send_meg(RESET_REASON, reset_reason, sizeof(reset_reason));
+            }
+        }
+
         csrxcanp->cs_can_reset_sem();
 #ifdef END_NO_RESET
     }

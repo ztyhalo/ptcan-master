@@ -50,12 +50,12 @@ int     printf_time_callback(TEvent* tmpara)
 int main(int argc, char* argv[])
 {
 
-    time_t timep;
-    struct tm *p;
-    char name[256] = {0};
+    time_t     timep;
+    struct tm* p;
+    char       name[256] = {0};
 
-    time(&timep);//获取从1970至今过了多少秒，存入time_t类型的timep
-    p = localtime(&timep);//用localtime将秒数转化为struct tm结构体
+    time(&timep);          //获取从1970至今过了多少秒，存入time_t类型的timep
+    p = localtime(&timep); //用localtime将秒数转化为struct tm结构体
 
     QTextCodec* codec = QTextCodec::codecForName("UTF-8");
 
@@ -114,7 +114,8 @@ int main(int argc, char* argv[])
         string delete_file;
         delete_file = "find " + path + " -type f -mtime +30 -exec rm -rf {} \\;";
         system(delete_file.c_str());
-        sprintf(name, "%s_%d%d%d%d%02d.log",type.c_str(),1900+p->tm_year,1+p->tm_mon,p->tm_mday,p->tm_hour,p->tm_min);//把格式化的时间写入字符数组中
+        sprintf(name, "%s_%04d_%02d_%02d_%02d_%02d_%02d.log", type.c_str(), 1900 + p->tm_year, 1 + p->tm_mon,
+            p->tm_mday, p->tm_hour, p->tm_min, p->tm_sec); //把格式化的时间写入字符数组中
         pr_file += name;
         debug_p->printf_init(pr_file.c_str(), 0);
     }
@@ -122,11 +123,9 @@ int main(int argc, char* argv[])
     zprintf1("\r\n");
     zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H, PTCAN_VERSION_M, PTCAN_VERSION_L);
     zprintf3("ptcan low version is %d\r\n", 0x01);
-    zprintf3("heart no next, io and slave not using data\r\n");
+    zprintf3("change log format\r\n");
     zprintf3("ptcan low version is %d\r\n", 0x02);
-    zprintf3("no ack if reset reason is core system\r\n");
-    zprintf3("ptcan low version is %d\r\n", 0x03);
-    zprintf3("add log time and delete file if its befor 30 days\r\n");
+    zprintf3("report reset reason low address\r\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);
