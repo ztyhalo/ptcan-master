@@ -1767,6 +1767,13 @@ void heart_frame_over(CANPRODATA* rxprodata, cs_can* csrxcanp)
 
     csrxcanp->state_info.set_tail_location(0, 0);
     csrxcanp->state_info.set_bs_location(0, 0);
+
+    if (csrxcanp->reset_state == DEV_RESET_OVER && csrxcanp->reset_msg[0] == RESET_SUCCESS)
+    {
+        csrxcanp->nconfig_map.val(0).dev_send_meg(
+            CS_REST_END_MEG, csrxcanp->reset_msg, sizeof(csrxcanp->reset_msg));
+        csrxcanp->reset_msg[0] = RESET_FAIL;
+    }
 }
 
 __inline__ void tk100_data_pro(cs_can* csrxcanp, CANDATAFORM rxmeg)
@@ -1811,14 +1818,7 @@ void com_heart_nextprocess(CANPRODATA* rxprodata, cs_can* csrxcanp, uint8_t devn
             memcpy(&(csrxcanp->nconfig_map.val(config_id).iodata[ttl * 4]), rxmeg.Data, rxmeg.DLC);
             break;
         case TERMINAL:
-            if (csrxcanp->reset_state == DEV_RESET_OVER && csrxcanp->reset_msg[0] == RESET_SUCCESS)
-            {
-                csrxcanp->nconfig_map.val(0).dev_send_meg(
-                    CS_REST_END_MEG, csrxcanp->reset_msg, sizeof(csrxcanp->reset_msg));
-                csrxcanp->reset_msg[0] = RESET_FAIL;
-            }
             csrxcanp->state_info.set_termal_vol(branch, rxmeg.Data[2]);
-
             break;
         case CS_DEV:
         {
@@ -2635,10 +2635,11 @@ void* max_reset_process(void* para)
             cs_pro_p->state_info.set_line_work_state(branch, CS_WORK_STATUS_LIVEOUT);
         }
         cs_pro_p->delete_1030_dev_timer();
-        sleep(2);
+
         while (reset_no_err != 0)
         {
             cs_pro_p->nconfig_map.val(0).dev_send_meg(CS_REST_MEG, NULL, 0);
+            sleep(2);
             cs_pro_p->max_reset_data();
             reset_no_err = cs_pro_p->cs_init();
             zprintf3("|||cs_init|||reset_no_err = %d\r\n", reset_no_err);
@@ -2649,7 +2650,7 @@ void* max_reset_process(void* para)
                 cs_pro_p->reset_msg[2] = cs_pro_p->get_mac_low_num();
                 cs_pro_p->nconfig_map.val(0).dev_send_meg(
                     CS_REST_END_MEG, cs_pro_p->reset_msg, sizeof(cs_pro_p->reset_msg));
-                sleep(3);
+                sleep(1);
             }
         }
         cs_pro_p->reset_state = DEV_RESET_OVER;

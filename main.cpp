@@ -33,8 +33,11 @@ void SignalFunc(int var)
 
     if (gCanInfo != NULL)
     {
+        qDebug()<<"delete gCanInfo";
         delete gCanInfo;
+        qDebug()<<"delete gCanInfo";
         delete debug_p;
+        qDebug()<<"delete gCanInfo";
         delete gNetP;
         gCanInfo = NULL;
     }
@@ -123,9 +126,7 @@ int main(int argc, char *argv[])
     zprintf1("\r\n");
     zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H, PTCAN_VERSION_M, PTCAN_VERSION_L);
     zprintf3("ptcan low version is %d\r\n", 0x01);
-    zprintf3("change log format\r\n");
-    zprintf3("ptcan low version is %d\r\n", 0x02);
-    zprintf3("report reset reason low address\r\n");
+    zprintf3("20231103qinhuan test\r\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);
