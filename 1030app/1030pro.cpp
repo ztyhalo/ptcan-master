@@ -2629,17 +2629,18 @@ void* max_reset_process(void* para)
         zprintf1("||||||||||||||||||||||||||||||wait reset_Sem|||||||||||||||||||||||||||\r\n");
         sem_wait(&cs_pro_p->reset_sem);
 
-        for (int branch = 0; branch < BRANCH_ALL; branch++)
-        {
-            cs_pro_p->state_info.set_termal_vol(branch, 0);
-            cs_pro_p->state_info.set_line_work_state(branch, CS_WORK_STATUS_LIVEOUT);
-        }
+
         cs_pro_p->delete_1030_dev_timer();
 
         while (reset_no_err != 0)
         {
             cs_pro_p->nconfig_map.val(0).dev_send_meg(CS_REST_MEG, NULL, 0);
             sleep(2);
+            for (int branch = 0; branch < BRANCH_ALL; branch++)
+            {
+                cs_pro_p->state_info.set_termal_vol(branch, 0);
+                cs_pro_p->state_info.set_line_work_state(branch, CS_WORK_STATUS_LIVEOUT);
+            }
             cs_pro_p->max_reset_data();
             reset_no_err = cs_pro_p->cs_init();
             zprintf3("|||cs_init|||reset_no_err = %d\r\n", reset_no_err);
