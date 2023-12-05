@@ -59,10 +59,11 @@ public:
 
 
 template <class FROM = void, class TO = void>
-class F_Timer:public NCbk_Poll
+class F_Timer:public NCbk_Poll, public MUTEX_CLASS
 {
 public:
     std::map<int, TimerEvent<FROM, TO> > poll_map;
+
 public:
     F_Timer(int max = 20):NCbk_Poll(max){
         ;
@@ -84,10 +85,13 @@ public:
     {
         zprintf3("timer is %f!\n", internal_value);
         TimerEvent<FROM, TO> midt(callback,f ,arg, t);
+
         if(midt.filed > 0){
-            e_poll_add(midt.filed);
+            lock();
+            e_poll_add_lt(midt.filed);
             poll_map.insert(std::pair<int, TimerEvent<FROM, TO> >(midt.filed, midt));
             midt.timer_start(internal_value, rep);
+            unlock();
         }
         return midt.filed;
     }
@@ -95,32 +99,40 @@ public:
     {
         int err = 0;
         if(event <= 0) return -1;
-        err = e_poll_del(event);
+        lock();
+        err = e_poll_del_lt(event);
         poll_map.erase(event);
         close(event);
+        unlock();
         return err;
     }
 
     void run(){
         struct epoll_event events[get_epoll_size()];
-        char buf[16];
+//        char buf[16];
+        uint64_t exp;
         int num;
         for (;  ; )
         {
             memset(&events, 0, sizeof(events));
             int nfds = epoll_wait(epfd, events, get_epoll_size(), 5000);
-
+            if (nfds == 0 || nfds == -1)
+            {
+                zprintf1("epoll wait overtime %d\r\n", nfds);
+            }
+            lock();
             for (int i = 0; i < nfds; ++i)
             {
                 typename std::map<int, TimerEvent<FROM, TO> >::iterator itmp = poll_map.find(events[i].data.fd);
                 if (itmp != poll_map.end())
                 {
-                    if((num = read(events[i].data.fd, buf,16)) > 0)
+                    if((num = read(events[i].data.fd, &exp, sizeof(uint64_t))) ==  sizeof(uint64_t))
                     {
                         itmp->second.t_back(&itmp->second);
                     }
                 }
             }
+            unlock();
         }
     }
 };

@@ -23,6 +23,8 @@
 #include <map>
 #include <errno.h>
 #include <iostream>
+
+#include "mutex.h"
 #include "zprint.h"
 
 #define MAXFDS 4
@@ -63,6 +65,24 @@ public:
         return 0;
     }
 
+    int e_poll_add_lt(int fd)
+    {
+        if(setNonBlock(fd) == false)
+            return -1;
+        int err = 0;
+        struct epoll_event ev;
+        memset(&ev, 0x00, sizeof(struct epoll_event));
+        ev.data.fd = fd;
+        ev.events = EPOLLIN;
+        err = epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev);
+        if(err == -1)
+        {
+            zprintf1("%s\n",strerror(errno));
+            return err;
+        }
+        return 0;
+    }
+
     int e_poll_del(int fd)
     {
         struct epoll_event ev;
@@ -71,12 +91,28 @@ public:
         int err = epoll_ctl(epfd, EPOLL_CTL_DEL, fd, &ev);
         if(err == -1)
         {
-            zprintf1("%s\n",strerror(errno));
+            zprintf1("epoll_ctl error %s\n",strerror(errno));
             return err;
         }
 
         return 0;
     }
+
+    int e_poll_del_lt(int fd)
+    {
+        struct epoll_event ev;
+        ev.data.fd = fd;
+        ev.events = EPOLLIN;
+        int err = epoll_ctl(epfd, EPOLL_CTL_DEL, fd, &ev);
+        if(err == -1)
+        {
+            zprintf1("epoll_ctl error %s\n",strerror(errno));
+            return err;
+        }
+
+        return 0;
+    }
+
     int e_poll_deactive()
     {
         active = 0;

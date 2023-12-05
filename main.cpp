@@ -122,13 +122,16 @@ int main(int argc, char *argv[])
         pr_file += name;
         debug_p->printf_init(pr_file.c_str( ), 0);
     }
+
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-    zprintf1("\r\n");
+    zprintf3("Project: %s\r\n","ptcan3 ");
+    zprintf3("Compile time: %s,%s\r\n",__DATE__,__TIME__);
     zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H, PTCAN_VERSION_M, PTCAN_VERSION_L);
     zprintf3("ptcan low version is %d\r\n", 0x01);
-    zprintf3("20231103qinhuan test\r\n");
-    zprintf3("ptcan low version is %d\r\n", 0x02);
-    zprintf3("20231113qinhuan test\r\n");
+    zprintf3("拔下CS时，复位沿线，bug20664\r\n");
+    zprintf3("设置复位时，心跳超时复位沿线,bug20467\r\n");
+    zprintf3("timerfd更改，水平触发\r\n");
+    zprintf3("收到终端心跳，更改set_dev_num\r\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);

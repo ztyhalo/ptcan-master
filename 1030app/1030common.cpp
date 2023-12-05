@@ -389,6 +389,7 @@ void Max_State_Pro::set_dev_type(uint8_t branch, uint8_t num, uint8_t val)
     (share_state.data + branch)->devc_state[num].value_c  = 0;
     share_state.unlock_qtshare();
 }
+
 uint8_t Max_State_Pro::get_dev_type(uint8_t branch, uint8_t num)
 {
     uint8_t location;
@@ -397,6 +398,7 @@ uint8_t Max_State_Pro::get_dev_type(uint8_t branch, uint8_t num)
     share_state.unlock_qtshare();
     return location;
 }
+
 void Max_State_Pro::set_dev_ID(uint8_t branch, uint8_t num, uint8_t val)
 {
     share_state.lock_qtshare();
@@ -486,6 +488,7 @@ void Max_State_Pro::set_voip_state(uint8_t branch, uint8_t state)
     }
     share_state.unlock_qtshare();
 }
+
 void Max_State_Pro::set_line_18v_state(uint8_t branch, uint8_t state, uint8_t lineNum)
 {
     share_state.lock_qtshare();

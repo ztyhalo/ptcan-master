@@ -1822,8 +1822,7 @@ void com_heart_nextprocess(CANPRODATA* rxprodata, cs_can* csrxcanp, uint8_t devn
             break;
         case CS_DEV:
         {
-            // zprintf1("cs receive ttl 00\r\n");
-
+            csrxcanp->heart_cs_error_count_g = 0;
             tbyte_swap((uint16_t*) rxmeg.Data, rxmeg.DLC);
 
             uint16_t c1 = (rxmeg.Data[4] * 0x100) + rxmeg.Data[3];
@@ -1899,16 +1898,6 @@ void heart_nonextprocess(CANPRODATA* rxprodata, cs_can* csrxcanp, uint8_t devnum
     }
 
     devtyle = csrxcanp->ndev_map.val(devnum).type;
-    // zprintf3("devnum = %d,devtyle = %d\r\n", devnum, devtyle);
-    csrxcanp->heart_ok_g[devnum]          = 1;
-    csrxcanp->heart_error_count_g[devnum] = 0;
-
-    //    printf("data = ");
-    //    for (int i = 0; i < 8; i++)
-    //    {
-    //        printf(" %x", rxmeg.Data[i]);
-    //    }
-    //    printf("\r\n");
 
     static uint8_t can_error_data[255][7];
     static bool    flag = 0;
@@ -1977,16 +1966,17 @@ void heart_nonextprocess(CANPRODATA* rxprodata, cs_can* csrxcanp, uint8_t devnum
                 {
                     io_num++;
                 }
-                csrxcanp->set_dev_map_state(i + 1, DEV_OFF_LINE);
+                //csrxcanp->set_dev_map_state(i + 1, DEV_OFF_LINE);  //20231130
             }
             csrxcanp->set_devonline_num(get_dev_addr);
 
-            csrxcanp->state_info.set_dev_num(0, csrxcanp->heart_check_last_id);
+            csrxcanp->state_info.set_dev_num(0, get_dev_addr);
             csrxcanp->state_info.set_bs_num(0, bs_num);
             csrxcanp->state_info.set_slaveio_num(0, io_num);
             heart_frame_over(rxprodata, csrxcanp);
             break;
         case CS_DEV:
+            csrxcanp->heart_cs_error_count_g = 0;
             break;
 
         case DEV_256_PHONE:
@@ -2078,17 +2068,19 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
 {
     uint8_t      reset_reason[4] = {0, 0, 0, 0};
     cs_can*      csrxcanp        = (cs_can*) pro1030;
-    CAN_DEV_APP* dev_pro_p       = NULL;
     Q_UNUSED(overmeg);
+    int soure_id  = 0;
+    int devtype   = 0;
+    int bs_num = 0, io_num = 0;
+    int lost_io_dev = false;
     if (csrxcanp == NULL)
     {
         return -1;
     }
-    int config_id = 0;
-    int soure_id  = 0;
-    int devtype   = 0;
-    int bs_num = 0, io_num = 0;
-    int reset_mark;
+    if (csrxcanp->heart_check_last_id == csrxcanp->cszjorder[0])    //终端收到一帧，丢一帧，退出，不然可能会报终端断线。
+    {
+        return -1;
+    }
     if (csrxcanp->heart_print_mark == 0)
     {
         zprintf1("heart check overtime %d %d\r\n", csrxcanp->heart_check_last_id, csrxcanp->reset_state);
@@ -2110,6 +2102,26 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
     {
         zprintf3("heart check break location is %d\r\n", csrxcanp->heart_check_last_id);
     }
+    if  (csrxcanp->heart_check_last_id == 0)
+    {
+        if (++csrxcanp->heart_cs_error_count_g > 4)
+        {
+            reset_reason[0] = PTCAN_RESET_HEART_OVERTIME;
+            reset_reason[1] = csrxcanp->auto_reset;
+            reset_reason[2] = csrxcanp->heart_check_last_id;
+            reset_reason[3] = devtype;
+            csrxcanp->state_info.set_line_work_state(0, CS_WORK_STATUS_LIVEOUT);
+            csrxcanp->nconfig_map.val(0).dev_send_meg(RESET_REASON, reset_reason, sizeof(reset_reason));
+            csrxcanp->cs_can_reset_sem();
+        }
+        else if (csrxcanp->heart_cs_error_count_g > 3)
+        {
+            csrxcanp->state_info.set_line_work_state(0, CS_WORK_STATUS_LIVEOUT);
+        }
+
+        return -1;
+    }
+
     if (csrxcanp->cut_location_shake[2] == csrxcanp->heart_check_last_id &&
         csrxcanp->cut_location_shake[1] == csrxcanp->heart_check_last_id &&
         csrxcanp->cut_location_shake[0] == csrxcanp->heart_check_last_id)
@@ -2142,47 +2154,25 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
         {
             for (uint8_t j = csrxcanp->heart_check_last_id; j < csrxcanp->cszjorder[0] - 1; j++)
             {
-                csrxcanp->set_dev_map_state(j, DEV_OFF_LINE);
+                csrxcanp->set_dev_map_state(j + 1, DEV_OFF_LINE);
                 devtype = csrxcanp->ndev_map.val(j).type;
-                if (csrxcanp->is_have_config_dev(j, config_id))
+                if ((devtype == TK236_IOModule_Salve) || (devtype == DEV_256_IO_LOCK) || (devtype == DEV_256_IO_PHONE))
                 {
-                    if (++csrxcanp->heart_error_count_g[config_id])
-                    {
-                        if (devtype == CS_DEV)
-                        {
-                            csrxcanp->state_info.set_cs_av_state(dev_pro_p->para.id >> 8, 0, 0, 0, 0);
-                        }
-                        else if (devtype == TERMINAL)
-                        {
-                            csrxcanp->state_info.set_termal_vol(dev_pro_p->para.id >> 8, 0);
-                        }
-                    }
-                    else
-                    {
-                        if (devtype != TERMINAL)
-                        {
-                            reset_reason[0] = PTCAN_RESET_HEART_OVERTIME;
-                            reset_reason[1] = csrxcanp->auto_reset;
-                            reset_reason[2] = csrxcanp->heart_check_last_id;
-                            reset_reason[3] = devtype;
-                            if (devtype != CS_DEV)
-                            {
-                                if (csrxcanp->auto_reset)
-                                {
-                                    csrxcanp->nconfig_map.val(0).dev_send_meg(
-                                        RESET_REASON, reset_reason, sizeof(reset_reason));
-                                }
-                                reset_mark = csrxcanp->cs_can_reset_pro();
-                            }
-                            else
-                            {
-                                csrxcanp->nconfig_map.val(0).dev_send_meg(
-                                    RESET_REASON, reset_reason, sizeof(reset_reason));
-                                reset_mark = csrxcanp->cs_can_reset_sem();
-                            }
-                        }
-                    }
+                    lost_io_dev = true;
                 }
+            }
+            if (lost_io_dev == true)
+            {
+                reset_reason[0] = PTCAN_RESET_HEART_OVERTIME;
+                reset_reason[1] = csrxcanp->auto_reset;
+                reset_reason[2] = j;
+                reset_reason[3] = devtype;
+                if (csrxcanp->auto_reset)
+                {
+                    csrxcanp->nconfig_map.val(0).dev_send_meg(
+                        RESET_REASON, reset_reason, sizeof(reset_reason));
+                }
+                csrxcanp->cs_can_reset_pro();
             }
         }
     }
@@ -2279,7 +2269,6 @@ int slavereset_frame_proc(void* pro1030, CANDATAFORM rxmeg)
         }
         else if (csrxcanp->reset_state == DEV_RESET_ING)
         {
-            zprintf3("reset reason is %d %d %d\r\n", reset_reason[2], get_dev_addr, report_addr);
             if (get_dev_addr < report_addr)
             {
                 reset_reason[0] = PTCAN_RESET_SALVE;
@@ -2297,6 +2286,7 @@ int slavereset_frame_proc(void* pro1030, CANDATAFORM rxmeg)
                 }
                 csrxcanp->nconfig_map.val(0).dev_send_meg(RESET_REASON, reset_reason, sizeof(reset_reason));
             }
+            zprintf3("reset reason is %d %d %d\r\n", reset_reason[2], get_dev_addr, report_addr);
         }
 
         csrxcanp->cs_can_reset_sem();
@@ -3154,6 +3144,7 @@ int cs_can::cs_init(void)
         csmacorder     = 0;
         csioorder      = 0;
         cut_check_flag = 0;
+        heart_cs_error_count_g = 0;
         memset(slave_io_num, 0, BRANCH_ALL);
         memset(cszjorder, 0, BRANCH_ALL);
         zprintf1(">?>?>?>?>?clear frist?>?>?>>?>?>?>?%d\r\n", ndev_map.size());
