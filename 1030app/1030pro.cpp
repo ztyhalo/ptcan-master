@@ -1952,6 +1952,8 @@ void heart_nonextprocess(CANPRODATA* rxprodata, cs_can* csrxcanp, uint8_t devnum
         case DEV_256_IO_LOCK:
         case DEV_256_IO_PHONE:
         case TK236_IOModule_Salve:
+            csrxcanp->is_have_config_dev(devnum + 1, config_id);
+            csrxcanp->nconfig_map.val(config_id).set_share_data( );
             break;
         case TERMINAL:
             for (uint8_t i = 0; i < get_dev_addr; i++)
