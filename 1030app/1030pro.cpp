@@ -2167,7 +2167,7 @@ int max_heartframe_overtimeproc(void* pro1030, CANDATAFORM overmeg)
             {
                 reset_reason[0] = PTCAN_RESET_HEART_OVERTIME;
                 reset_reason[1] = csrxcanp->auto_reset;
-                reset_reason[2] = j;
+                reset_reason[2] = 0;
                 reset_reason[3] = devtype;
                 if (csrxcanp->auto_reset)
                 {
