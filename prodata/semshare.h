@@ -272,7 +272,6 @@ int Sem_Qt_Data<T>::read_send_data(T & val)
      else
          i =1;
      {
-
         if(count >= 256)
         {
              zprintf1("read cout err %d rd %d wr %d sem %d!!!\n", count,
@@ -354,12 +353,12 @@ void  Sem_QtPth_Data<T,FAT>::run(void)
        if(sem_p(this->semid, 2) == 0)
         {
            valmak++;
-            nprintf("sem cout %d num %d!\n", get_sem_count(this->semid), valmak);
+            zprintf1("sem cout %d num %d!\n", get_sem_count(this->semid), valmak);
             T val;
             while(1)
             {
                 err = this->read_send_data(val);
-//                printf("sem cout %d num %d error %d????????????????????????????????????????????!\n", get_sem_count(this->semid), valmak,err);
+                zprintf1("sem cout %d num %d error %d????????????????????????????????????????????!\n", get_sem_count(this->semid), valmak,err);
 
                 if(err >= 0)
                 {

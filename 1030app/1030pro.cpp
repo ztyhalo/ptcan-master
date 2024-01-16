@@ -3359,8 +3359,8 @@ int dev1030_output(void* midp, soutDataUnit val)
             memcpy(&outvalue[1], &data, 2);
             if (val.childid)
             {
-                pro->cs_send_data(
-                    CMD_SEND_FOUTPUT, 1, val.childid + 1, pro->nconfig_map.val(order).dev_off, outvalue, 3);
+                zprintf1("send value is %d\r\n", outvalue);
+                pro->cs_send_data(CMD_SEND_FOUTPUT, 1, val.childid + 1, pro->nconfig_map.val(order).dev_off, outvalue, 3);
             }
             else
             {
