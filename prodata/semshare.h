@@ -259,16 +259,20 @@ int Sem_Qt_Data< T >::read_send_data(T &val)
     int      i     = 0;
     int      zs    = get_sem_count(semid);
     zjs++;
-    if(count > (zs + 1))
+    if(count != (zs + 1))
     {
-        i = count - zs;
+        if(count > (zs + 1))
+        {
+            i = count - zs;
+        }
+        else
+        {
+            this->unlock_qtshare();
+            return -1;
+        }
     }
     else
-    {
-        this->unlock_qtshare();
-        return -1;
-    }
-    else i = 1;
+        i = 1;
     {
         if(count >= 256)
         {

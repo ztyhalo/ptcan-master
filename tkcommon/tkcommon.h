@@ -30,7 +30,7 @@ using namespace std;
 
 #define DEV_ID_MASK (~(0x000001f0))
 
-#define SET_FRAM_DEV(FRAM, ID) ((FRAM) &DEV_ID_MASK) | ((ID) << 4)
+#define SET_FRAM_DEV(FRAM, ID) ((FRAM)&DEV_ID_MASK) | ((ID) << 4)
 
 #define TK100INPUT_BUF_SIZE 32
 #define TK_IO_SATET_N       0x03
@@ -38,7 +38,7 @@ using namespace std;
 typedef enum
 {
     DEV_256_IO_PHONE = 0X00,
-    DEV_256_IO_LOCK,
+    DEV_256_MODBUS_LOCK,
     DEV_256_PHONE,
     DEV_256_LOCK,
     LOW_MACH,
@@ -82,10 +82,10 @@ enum
  ***************************************************************************************************/
 enum
 {
-    IO_START_ACK_ID = 0x0450,    //上电认可 config parameter
-    IO_OUTCONTR_ASK_ID,          //输出控制
-    IO_INCHANGE_ACK_ID = 0x0457, //输入口变化响应
-    IO_DATA_ASK_ID     = 0x045f  //数据请求帧
+    IO_START_ACK_ID = 0x0450,       //上电认可 config parameter
+    IO_OUTCONTR_ASK_ID,             //输出控制
+    IO_INCHANGE_ACK_ID = 0x0457,    //输入口变化响应
+    IO_DATA_ASK_ID     = 0x045f     //数据请求帧
 
 };
 /****************************************************************************************************
@@ -93,7 +93,7 @@ enum
  ***************************************************************************************************/
 enum
 {
-    IO_START_ASK_ID = 0x0650, //上电认可帧
+    IO_START_ASK_ID = 0x0650,    //上电认可帧
 
 };
 /****************************************************************************************************
@@ -113,14 +113,14 @@ enum
  ***************************************************************************************************/
 enum
 {
-    IO_START_ASK = 0,    //上电认可信息请求
-    IO_OUTCONTR_ACK,     //输出控制指令应答
-    IO_DATA_ACK_ONE,     //数据请求帧应答1
-    IO_DATA_ACK_TWO,     //数据请求帧应答帧2
-    IO_DATA_ACK_THR,     //数据请求帧应答帧3
-    IO_DATA_ACK_FOU = 5, //数据请求帧应答帧4
-    IO_CONFIG_ACK,       //上电认可及配置的应答
-    IO_INCHANGE_ASK,     //输出口变化请求
+    IO_START_ASK = 0,       //上电认可信息请求
+    IO_OUTCONTR_ACK,        //输出控制指令应答
+    IO_DATA_ACK_ONE,        //数据请求帧应答1
+    IO_DATA_ACK_TWO,        //数据请求帧应答帧2
+    IO_DATA_ACK_THR,        //数据请求帧应答帧3
+    IO_DATA_ACK_FOU = 5,    //数据请求帧应答帧4
+    IO_CONFIG_ACK,          //上电认可及配置的应答
+    IO_INCHANGE_ASK,        //输出口变化请求
     IO_RXMES_MAX
 
 };
@@ -132,12 +132,12 @@ extern sem_t gTk200_Rest_Meg;
 
 enum
 {
-    SENSOR_FAULT = 0, //传感器故障
-    SWITCH_BROKEN,    //开关量断路
-    SWITCH_SHORT,     //开关量短路
-    FREQ_LOW,         //频率量小于200
-    FREQ_HIGHT,       //频率量大于1000
-    NODE_OK = 7       //
+    SENSOR_FAULT = 0,    //传感器故障
+    SWITCH_BROKEN,       //开关量断路
+    SWITCH_SHORT,        //开关量短路
+    FREQ_LOW,            //频率量小于200
+    FREQ_HIGHT,          //频率量大于1000
+    NODE_OK = 7          //
 
 };
 typedef union
@@ -164,9 +164,9 @@ typedef union
     uint16_t fram;
     struct
     {
-        uint16_t func : 4; // 功能码
-        uint16_t addr : 5; // 设备地址
-        uint16_t dev : 2;  // 设备属性
+        uint16_t func : 4;    // 功能码
+        uint16_t addr : 5;    // 设备地址
+        uint16_t dev : 2;     // 设备属性
     } fram_org;
 } TK_FRAMEID;
 
@@ -186,12 +186,12 @@ enum
 };
 class Dev_Message
 {
-  public:
-    uint16_t meg_size;  //消息大小
-    uint8_t  meg_state; //目前未用，保留
-    uint8_t  dev_type;  //设备类型
-    uint8_t  meg_type;  //消息的类型
-  public:
+public:
+    uint16_t meg_size;     //消息大小
+    uint8_t  meg_state;    //目前未用，保留
+    uint8_t  dev_type;     //设备类型
+    uint8_t  meg_type;     //消息的类型
+public:
     Dev_Message(uint8_t type = 0)
     {
         memset(this, 0x00, sizeof(Dev_Message));
@@ -207,11 +207,11 @@ class TK200_State_Mem;
 
 class PT_Dev_State
 {
-  public:
+public:
     uint8_t dev_enbale;
     uint8_t dev_state;
 
-  public:
+public:
     PT_Dev_State()
     {
         dev_enbale = 0;
@@ -233,12 +233,12 @@ class PT_Dev_State
 
 class DEV_SData_Pro : public PT_Dev_State
 {
-  public:
+public:
     uint8_t          devid;
-    PT_Dev_State*    data;
-    TK200_State_Mem* mem;
+    PT_Dev_State    *data;
+    TK200_State_Mem *mem;
 
-  public:
+public:
     void set_dev_enable(uchar val);
     void set_dev_state(uchar val);
 };
@@ -248,21 +248,21 @@ class DEV_SData_Pro : public PT_Dev_State
  * ***************************************************************************/
 class PT_Dev_Virt
 {
-  public:
+public:
     //    uint8_t                dev_en;            //设备使能标志
-    uint8_t devtype;  //设备类型
-    uint8_t dev_off;  //设备在整个驱动中的编号
-    uint8_t child_id; //该设备的子设备编号 0表示不是子设备
+    uint8_t devtype;     //设备类型
+    uint8_t dev_off;     //设备在整个驱动中的编号
+    uint8_t child_id;    //该设备的子设备编号 0表示不是子设备
 
-    int                polltimer; //论询定时器id
-    ncan_protocol*     pro_p;
-    Pt_Devs_ShareData* data_p;
-    MsgMng*            msgmng_p;
-    can_dev_para       dev_para;  //设备参数
-    CANDATAFORM        pollFrame; // poll frame;
+    int                polltimer;    //论询定时器id
+    ncan_protocol     *pro_p;
+    Pt_Devs_ShareData *data_p;
+    MsgMng            *msgmng_p;
+    can_dev_para       dev_para;     //设备参数
+    CANDATAFORM        pollFrame;    // poll frame;
 
-  public:
-    PT_Dev_Virt(ncan_protocol* pro, Pt_Devs_ShareData* data, uint8_t type = 0)
+public:
+    PT_Dev_Virt(ncan_protocol *pro, Pt_Devs_ShareData *data, uint8_t type = 0)
     {
         devtype   = type;
         dev_off   = 0;
@@ -285,18 +285,18 @@ class PT_Dev_Virt
     }
     void delete_dev_timer(void)
     {
-        if (polltimer != 0 && pro_p != NULL)
+        if(polltimer != 0 && pro_p != NULL)
         {
             pro_p->delete_poll_timer(polltimer);
             polltimer = 0;
         }
     }
-    void add_dev_timer(double inter, void* arg)
+    void add_dev_timer(double inter, void *arg)
     {
-        if (polltimer == 0 && pro_p != NULL)
+        if(polltimer == 0 && pro_p != NULL)
         {
             polltimer = pro_p->add_poll_frame(inter, arg);
-            if (polltimer <= 0)
+            if(polltimer <= 0)
             {
                 zprintf1("Add poll time fali!\n");
                 polltimer = 0;
@@ -304,7 +304,7 @@ class PT_Dev_Virt
         }
     }
 
-    void pt_dev_virt_init(ncan_protocol* pro, Pt_Devs_ShareData* data, uint8_t type = 0)
+    void pt_dev_virt_init(ncan_protocol *pro, Pt_Devs_ShareData *data, uint8_t type = 0)
     {
         devtype = type;
         pro_p   = pro;
@@ -317,7 +317,7 @@ class PT_Dev_Virt
         zprintf3("destory PT_Dev_Virt!\n");
     }
     //    void dev_meg_init(int parasize, int repsize);
-    void         dev_send_meg(uint8_t megtype, uint8_t* data, uint16_t size);
+    void         dev_send_meg(uint8_t megtype, uint8_t *data, uint16_t size);
     virtual void data_send(soutDataUnit data) = 0;
     virtual int  pt_dev_init(void)            = 0;
     virtual void reset_data_init(void);
@@ -325,14 +325,14 @@ class PT_Dev_Virt
 
 class Node_Shake : public MUTEX_CLASS
 {
-  public:
+public:
     uint8_t  node_id;
     uint8_t  node_val;
     uint8_t  node_new_val;
     uint32_t shake_count;
     uint32_t shake_num;
 
-  public:
+public:
     Node_Shake(uint8_t id = 0, uint32_t num = 0)
     {
         node_id      = id;
@@ -361,7 +361,7 @@ class Node_Shake : public MUTEX_CLASS
     void set_new_val(uint8_t val)
     {
         lock();
-        if (val != node_new_val)
+        if(val != node_new_val)
         {
             node_new_val = val;
             shake_count  = 0;
@@ -370,7 +370,7 @@ class Node_Shake : public MUTEX_CLASS
     }
     int set_node_val(void)
     {
-        if (node_val != node_new_val)
+        if(node_val != node_new_val)
         {
             node_val = node_new_val;
             return 1;
@@ -380,7 +380,7 @@ class Node_Shake : public MUTEX_CLASS
     int shake_process(void)
     {
         int err = 0;
-        if (shake_num == 0)
+        if(shake_num == 0)
         {
             //            zprintf3("err id %d shakecount %d num %d!\n", node_id, shake_count, shake_num);
             return 0;
@@ -389,7 +389,7 @@ class Node_Shake : public MUTEX_CLASS
         //        zprintf3("id %d shakecount %d num %d!\n", node_id, shake_count, shake_num);
         lock();
         shake_count++;
-        if (shake_count >= shake_num)
+        if(shake_count >= shake_num)
         {
 
             shake_count = 0;
@@ -406,21 +406,21 @@ class Dev_Node_Pro;
 #define DEV_TIME_ET    B_TEvent(Dev_Node_Pro)
 class Dev_Node_Pro
 {
-  public:
-    Pt_Devs_ShareData*          share_p;
+public:
+    Pt_Devs_ShareData          *share_p;
     uint8_t                     ndev_id;
     uint8_t                     nc_id;
     int                         ms;
     DEV_NODE_TIMER              dtimer;
     QMap< uint8_t, Node_Shake > nodemap;
 
-  public:
-    Dev_Node_Pro(Pt_Devs_ShareData* s_p = NULL, int mstimer = 100, uint8_t dev = 0, uint8_t child = 0)
+public:
+    Dev_Node_Pro(Pt_Devs_ShareData *s_p = NULL, int mstimer = 100, uint8_t dev = 0, uint8_t child = 0)
         : share_p(s_p), ndev_id(dev), nc_id(child)
     {
         ms = mstimer;
     }
-    void dev_node_data_init(Pt_Devs_ShareData* s_p, int mstimer, uint8_t dev = 0, uint8_t child = 0)
+    void dev_node_data_init(Pt_Devs_ShareData *s_p, int mstimer, uint8_t dev = 0, uint8_t child = 0)
     {
         share_p = s_p;
         ms      = mstimer;
@@ -439,22 +439,23 @@ class Dev_Node_Pro
 class TK_IO_Dev : public PT_Dev_Virt, public DEV_SData_Pro, public Dev_Node_Pro
 {
 
-  public:
+public:
     string  dev_name;
     uint8_t io_id;
 
     TK_IO_ATTR attr;
 
-    bitset< 48 >    inconfig;  //输入点配置参数
-    bitset< 24 >    outconfig; //输出点配置参数
-    bitset< 8 >     pollmark;  //查询帧应答标记
-    TKINPUT*        inbuf;     //查询帧buf指针
-    uint8_t*        iocandata; //接收数据
-    sem_t           sendSem;   // send sem
+    bitset< 48 >    inconfig;     //输入点配置参数
+    bitset< 24 >    outconfig;    //输出点配置参数
+    bitset< 8 >     pollmark;     //查询帧应答标记
+    TKINPUT        *inbuf;        //查询帧buf指针
+    uint8_t        *iocandata;    //接收数据
+    sem_t           sendSem;      // send sem
     pthread_mutex_t send_mut;
 
-  public:
-    TK_IO_Dev(ncan_protocol* pro, Pt_Devs_ShareData* data = NULL) : PT_Dev_Virt(pro, data)
+public:
+    TK_IO_Dev(ncan_protocol *pro, Pt_Devs_ShareData *data = NULL)
+        : PT_Dev_Virt(pro, data)
     {
         memset(&attr, 0x00, sizeof(TK_IO_ATTR));
 
@@ -484,19 +485,20 @@ class TK_IO_Dev : public PT_Dev_Virt, public DEV_SData_Pro, public Dev_Node_Pro
 
         pthread_mutex_destroy(&send_mut);
         sem_close(&sendSem);
-        if (inbuf != NULL)
+        if(inbuf != NULL)
         {
             delete[] inbuf;
         }
-        if (iocandata != NULL) delete[] iocandata;
+        if(iocandata != NULL)
+            delete[] iocandata;
         zprintf3("destory TK_IO_Dev!\n");
     }
 
     int  pt_dev_init(void);
     int  tk_io_reset_config(void);
-    int  tk_io_config(CAN_DEV_INFO& dev, uint8_t devoff);
+    int  tk_io_config(CAN_DEV_INFO &dev, uint8_t devoff);
     void data_send(soutDataUnit data);
-    void set_io_conf(uint8_t* buf);
+    void set_io_conf(uint8_t *buf);
     void set_out_node_val(int node, int val);
     void set_in_switch_node_val(int node, int val);
     void set_in_freq_node_val(int node, int val);
@@ -505,7 +507,7 @@ class TK_IO_Dev : public PT_Dev_Virt, public DEV_SData_Pro, public Dev_Node_Pro
         delete_dev_timer();
     }
 
-    void set_send_data_fram(uint& framid)
+    void set_send_data_fram(uint &framid)
     {
         TK_FRAMEID deframid;
         deframid.fram         = framid;
@@ -537,15 +539,15 @@ class TK_IO_Dev : public PT_Dev_Virt, public DEV_SData_Pro, public Dev_Node_Pro
  * ********************************************************************/
 enum
 {
-    BS_REPORT_MEG = 1, //急停上报
-    CS_REST_MEG,       //复位上报
-    CS_REST_END_MEG,   //复位完成上报
-    LOW_NUM_MEG,       //下位机数量变化上报
-    LOW_NUM_LOST,      //下设备丢失
-    CONFIG_ERROR,      //配置错误
+    BS_REPORT_MEG = 1,    //急停上报
+    CS_REST_MEG,          //复位上报
+    CS_REST_END_MEG,      //复位完成上报
+    LOW_NUM_MEG,          //下位机数量变化上报
+    LOW_NUM_LOST,         //下设备丢失
+    CONFIG_ERROR,         //配置错误
     RESET_REASON,
-    DEV_PROGRAM_ERROR, //设备程序错误
-    REPROT_CAN_ERROR,  // CAN错误
+    DEV_PROGRAM_ERROR,    //设备程序错误
+    REPROT_CAN_ERROR,     // CAN错误
     //    IO_REPORT_AUTO,         //IO输入主动上报
     //    BS_BUTTON_MSG,          //闭锁按钮主动上报
     //    CV_REPORT_MSG,
@@ -556,6 +558,6 @@ void set_config_state(int value);
 
 // int tk100control_output(int canid, int node, uint16_t value);
 
-int tk100_output(void* midp, soutDataUnit val);
+int tk100_output(void *midp, soutDataUnit val);
 
 #endif /*__TKCOMMON_H__*/
