@@ -224,6 +224,7 @@ void CAN_DEV_APP::dev_send_meg(uint8_t megtype, uint8_t *data, uint16_t size)
     pkt.type = MSG_TYPE_DevAutoReport;
 
     devmeg.meg_type = megtype;
+    devmeg.meg_state = 1;
     devmeg.meg_size = size;
 
     memcpy(pkt.data, &devmeg, sizeof(Dev_Message));

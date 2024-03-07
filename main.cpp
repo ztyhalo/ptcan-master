@@ -135,6 +135,7 @@ int main(int argc, char *argv[])
     zprintf3("心跳 IO上报\r\n");
     zprintf3("控制输出修改\r\n");
     zprintf3("增加485通讯设备\r\n");
+    zprintf3("主动上报增加沿线号\r\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);
