@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     }
 
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-    zprintf3("Project: %s\r\n", "ptcan1 ");
+    zprintf3("Project: %s\r\n", "ptcan1 for KTC256 ");
     zprintf3("Compile time: %s,%s\r\n", __DATE__, __TIME__);
     zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H, PTCAN_VERSION_M, PTCAN_VERSION_L);
     zprintf3("ptcan low version is %d\r\n", 0x03);
@@ -133,6 +133,8 @@ int main(int argc, char *argv[])
     zprintf3("timerfd更改，水平触发\r\n");
     zprintf3("收到终端心跳，更改set_dev_num\r\n");
     zprintf3("心跳 IO上报\r\n");
+    zprintf3("控制输出修改\r\n");
+    zprintf3("增加485通讯设备\r\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);
