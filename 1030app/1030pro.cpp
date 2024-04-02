@@ -1948,6 +1948,14 @@ void heart_nonextprocess(CANPRODATA *rxprodata, cs_can *csrxcanp, uint8_t devnum
         return;
     }
 
+    if (get_dev_addr == csrxcanp->csmacorder)
+    {
+        if(csrxcanp->reset_state == DEV_RESET_OVER && csrxcanp->reset_msg[0] == RESET_SUCCESS)
+        {
+            csrxcanp->nconfig_map.val(0).dev_send_meg(CS_REST_END_MEG, csrxcanp->reset_msg, sizeof(csrxcanp->reset_msg));
+            csrxcanp->reset_msg[0] = RESET_FAIL;
+        }
+    }
     switch(devtyle)
     {
         case DEV_256_MODBUS_LOCK:
