@@ -191,8 +191,8 @@ int CAN_DEV_APP::set_share_data(void)
     }
     for(i = 1; i <= para.outnum; i++)
     {
+        devdata_p->set_share_data_value(slaveio_order - 1, 0, i + para.innum, get_output_data(i));
     }
-    devdata_p->set_share_data_value(slaveio_order - 1, 0, i + para.innum, get_output_data(i));
     return 0;
 }
 
