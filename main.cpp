@@ -18,7 +18,11 @@
 #include <fstream>
 
 #include <string.h>
+#ifdef AARCH64_PLATFORM
+#include <sys/uio.h>
+#else
 #include <sys/io.h>
+#endif
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
