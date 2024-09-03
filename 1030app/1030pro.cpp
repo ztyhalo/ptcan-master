@@ -1037,6 +1037,7 @@ int foutput_controlack_frameproc(void *pro1030, CANDATAFORM rxmeg)
     else
     {
         uint16_t midval = 0;
+        zprintf1("f output control!\n");
         //        memcpy(&midval, &rxmeg.Data[1], 2);
         midval = rxmeg.Data[1] * 0x100 + rxmeg.Data[2];
         csrxcanp->data_p->set_out_ack_value(csrxcanp->nconfig_map.val(soureid).slaveio_order - 1, 0,
@@ -1172,6 +1173,7 @@ int output_controlack_frameproc(void *pro1030, CANDATAFORM rxmeg)
     }
     else
     {
+        zprintf1("switch output control 0x%x data 0x%x!\n", rxmeg.ExtId, rxmeg.Data[0] & 0x03);
         csrxcanp->data_p->set_out_ack_value(csrxcanp->nconfig_map.val(soureid).slaveio_order - 1, 0,
                                             csrxcanp->nconfig_map.val(soureid).para.innum + (rxmeg.Data[0] >> 2), rxmeg.Data[0] & 0x03);
     }
@@ -3344,7 +3346,7 @@ int dev1030_output(void *midp, soutDataUnit val)
             return -2;
         }
 
-        nprintf("send val  %d %d %d %d\n", val.parentid, val.childid, val.pointid, (int)val.value);
+        zprintf1("send val  %d %d %d %d\n", val.parentid, val.childid, val.pointid, (int)val.value);
         if(pro->nconfig_map.val(order).get_outnode_tyle(val.pointid) == 0)
         {
             outvalue[0] = data;
