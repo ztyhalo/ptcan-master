@@ -36,8 +36,18 @@ DEFINES += ARM_PLATFORM
 linux-g++-64{
            DEFINES += PC_PLATFORM
 }
+
+
+contains(QT_ARCH, aarch64){
+message("arm64")
+linux-g++{
+           DEFINES += AARCH64_PLATFORM
+}
+}else{
+message("x86")
 linux-g++{
            DEFINES += PC_PLATFORM
+}
 }
 
 DEFINES += NO_LOCK_ERROR
