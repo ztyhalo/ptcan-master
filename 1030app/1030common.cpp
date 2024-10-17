@@ -341,8 +341,8 @@ void Max_State_Pro::set_dev_state_OR(int id, uint8_t val)    //修改为自动�
 void Max_State_Pro::set_ptcan_version(uint8_t branch)
 {
     share_state.lock_qtshare();
-    //    (share_state.data + branch)->line_state.ptcan_v = PTCAN_VERSION_H << 8 | PTCAN_VERSION_M << 4 |
-    //    PTCAN_VERSION_L;
+       (share_state.data + branch)->line_state.ptcan_v = PTCAN_VERSION_H << 8 | PTCAN_VERSION_M << 4 |
+       PTCAN_VERSION_L;
     share_state.unlock_qtshare();
 }
 
@@ -445,6 +445,20 @@ uint8_t Max_State_Pro::get_dev_num(int branch)    //添加得到设备状态 设
     location = (share_state.data + branch)->line_state.Dev_Exist;
     share_state.unlock_qtshare();
     return location;
+}
+
+void Max_State_Pro::set_dev_misc1_state(uint8_t branch, uint8_t num, uint8_t io_num, uint8_t value)
+{
+    share_state.lock_qtshare();
+    if (value == true)
+    {
+        (share_state.data + branch)->devc_state[num].misc_1 = SET_NTH_BIT((share_state.data + branch)->devc_state[num].misc_1, io_num);
+    }
+    else
+    {
+        (share_state.data + branch)->devc_state[num].misc_1 = CLEAR_NTH_BIT((share_state.data + branch)->devc_state[num].misc_1, io_num);
+    }
+    share_state.unlock_qtshare();
 }
 
 void Max_State_Pro::set_dev_cv_state(uint8_t branch, uint8_t num, uint8_t v, uint8_t c)

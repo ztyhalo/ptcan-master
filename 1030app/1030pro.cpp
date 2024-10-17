@@ -1792,6 +1792,7 @@ void com_heart_nextprocess(CANPRODATA *rxprodata, cs_can *csrxcanp, uint8_t devn
     CS_BRANCH_TYPE branch;
     CANFRAMEID     rxmidframe;
     int            config_id = 0;
+    int            battery = 0;
     rxmidframe.canframeid    = rxmeg.ExtId;
     uint8_t get_dev_addr, get_zj_index, get_cs_index;
     get_dev_addr = rxmidframe.canframework.devaddr_8;
@@ -1818,6 +1819,28 @@ void com_heart_nextprocess(CANPRODATA *rxprodata, cs_can *csrxcanp, uint8_t devn
         case DEV_256_IO_PHONE:
         case TK236_IOModule_Salve:
             memcpy(&(csrxcanp->nconfig_map.val(config_id).iodata[ttl * 4]), rxmeg.Data, rxmeg.DLC);
+            // if (csrxcanp->nconfig_map.val(config_id).para.innum > ttl * 4)
+            // {
+            //     for (int i = 0; i < csrxcanp->nconfig_map.val(config_id).para.innum; i++)
+            //     {
+
+            //     }
+            //     csrxcanp->state_info.set_dev_misc1_state(branch, devnum, );
+            // }
+            for (int i = 0; i < rxmeg.DLC; i+=2)
+            {
+                if (csrxcanp->nconfig_map.val(config_id).para.innum > ttl * 4)
+                {
+                    if ((rxmeg.Data[i+1] & 0x40) == 0x40)
+                    {
+                        csrxcanp->state_info.set_dev_misc1_state(branch, devnum, ttl*4 + i/2, true);
+                    }
+                    else
+                    {
+                        csrxcanp->state_info.set_dev_misc1_state(branch, devnum, ttl*4 + i/2, false);
+                    }
+                }
+            }
             break;
         case TERMINAL:
             csrxcanp->state_info.set_termal_vol(branch, rxmeg.Data[2]);

@@ -45,6 +45,7 @@ void PRINTF_CLASS::printf_init(const char *name, int fd)
                 printf("file %s open fail\n", name);
             }
         }
+        //symlink(type, name);
     }
 }
 

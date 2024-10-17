@@ -12,8 +12,8 @@
 using namespace std;
 
 #define PTCAN_VERSION_H 1
-#define PTCAN_VERSION_M 6
-#define PTCAN_VERSION_L 0
+#define PTCAN_VERSION_M 7
+#define PTCAN_VERSION_L 1
 
 #define PT_INPUTPARA_MAX  5
 #define PT_OUTPUTPARA_MAX 1
@@ -352,8 +352,12 @@ struct sLine_State
     uint16_t ZD_Volte;
     uint16_t CS_Volte[2];
     uint16_t CS_Current[2];
-    //    uint16_t ptcan_v;
+    uint16_t ptcan_v;
     //    uint16_t reset_reason;
+    uint32_t misc_yuliu_1;
+    uint32_t misc_yuliu_2;
+    uint32_t misc_yuliu_3;
+    uint32_t misc_yuliu_4;
     uint8_t BS_Buttion[BS_MAX_NUM];
 };
 struct sDevc_State
@@ -365,6 +369,11 @@ struct sDevc_State
     uint16_t app_v;
     uint8_t  value_v;
     uint8_t  value_c;
+    uint32_t misc_1;
+    uint32_t misc_yuliu_1;
+    uint32_t misc_yuliu_2;
+    uint32_t misc_yuliu_3;
+    uint32_t misc_yuliu_4;
 };
 
 struct Max_State_Data
@@ -432,6 +441,7 @@ public:
     void          set_dev_ID(uint8_t branch, uint8_t num, uint8_t val);
     uint8_t       get_dev_state(int id);
     uint8_t       get_dev_state(int branch, int id);
+    void          set_dev_misc1_state(uint8_t branch, uint8_t num, uint8_t io_num, uint8_t value);
     void          set_dev_cv_state(uint8_t branch, uint8_t num, uint8_t v, uint8_t c);
     void          set_dev_version_state(uint8_t branch, uint8_t num, uint16_t boot_v, uint16_t app_v);
     uint8_t       get_dev_num(int branch);

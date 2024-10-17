@@ -16,7 +16,8 @@ QMAKE_CXXFLAGS += -std=c++0x
 
 TEMPLATE = app
 
-target.path = /opt/work_zc/work
+#target.path = /opt/work_zc/work
+target.path = /opt/bin
 INSTALLS += target
 
 if(contains(TEMPLATE,"lib")){

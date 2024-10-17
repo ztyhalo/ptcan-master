@@ -124,15 +124,18 @@ int main(int argc, char *argv[])
         sprintf(name, "%s_%04d_%02d_%02d_%02d_%02d_%02d.log", type.c_str( ), 1900 + p->tm_year, 1 + p->tm_mon,
                 p->tm_mday, p->tm_hour, p->tm_min, p->tm_sec);    // 把格式化的时间写入字符数组中
         pr_file += name;
+
         debug_p->printf_init(pr_file.c_str( ), 0);
     }
-
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     zprintf3("Project: %s\r\n", "ptcan1 for KTC256 ");
     zprintf3("Compile time: %s,%s\r\n", __DATE__, __TIME__);
     zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H, PTCAN_VERSION_M, PTCAN_VERSION_L);
-    zprintf3("ptcan low version is %d\r\n", 0x04);
-    zprintf3("接收心跳时，检查是否接收到最后一个设备的心跳，若接收到，报复位完成，关联bug:21129\r\n");
+    zprintf3("ptcan low version is %d\r\n");
+    zprintf3("0 新增无线采集器中传感器电量报警\r\n");
+    zprintf3("0 修改共享内存\r\n");
+    zprintf3("1 去除接收can帧打印\r\n");
+    zprintf3("1 无线采集设备频率量电量报警bug修改\r\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);

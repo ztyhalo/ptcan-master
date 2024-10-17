@@ -182,7 +182,7 @@ void CanDriver::run()
            while(read(CanFileP, buf,sizeof(CanFrame)) == sizeof(CanFrame))
            {
 
-               zprintf1("receive canid 0x%x\n", pfram->can_id&0x1FFFFFFF);
+//               zprintf1("receive canid 0x%x\n", pfram->can_id&0x1FFFFFFF);
 //               canread.buf_write_data((CanFrame*)buf);
                this->rxcallback(this, *pfram);
 //               nprintf("receive 0x%x over\n", pfram->can_id&0x1FFFFFFF);
