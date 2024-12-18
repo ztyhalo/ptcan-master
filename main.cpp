@@ -136,6 +136,7 @@ int main(int argc, char *argv[])
     zprintf3("0 修改共享内存\r\n");
     zprintf3("1 去除接收can帧打印\r\n");
     zprintf3("1 无线采集设备频率量电量报警bug修改\r\n");
+    zprintf3("1 打印input频率量\r\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);
