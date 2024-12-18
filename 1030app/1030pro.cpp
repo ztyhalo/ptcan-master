@@ -28,11 +28,11 @@ int cs_can::add_default_dev(int zjnum, int csnum, int devid, int io_num, uint16_
     int         order;
     int         dev_off = devid - 1;
 
-    if(is_have_dev(zjnum, csnum, devid, order) == TRUE)
+    if (is_have_dev(zjnum, csnum, devid, order) == TRUE)
     {
         nconfig_map.val(order).para.type = type;
         nconfig_map.val(order).devdata_p = NULL;
-        nconfig_map.val(order).para.name.clear();
+        nconfig_map.val(order).para.name.clear( );
         nconfig_map.val(order).reset_default_config(type);
     }
     else
