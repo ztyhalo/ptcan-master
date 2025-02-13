@@ -2617,6 +2617,62 @@ void cs_can::send_configdata(void)
     zprintf3("|||cs_init|||send config over!\n");
 }
 
+void *heartManageThread(void *para)
+{
+    zprintf1("|||heartManageThread||| thread start...\n");
+
+    //绑定共享内存
+    QString key = "ManageHparameter2@localhost";
+    int offset = 2;
+    QSharedMemory shareMemory(key);
+
+    while(!shareMemory.attach(QSharedMemory::ReadOnly))
+    {
+        sleep(1);
+    }
+
+    zprintf1("|||heartManageThread||| attach success, key is %s\n", shareMemory.key().toStdString().c_str());
+
+    //监听logic心跳数据
+    char *shareData = static_cast<char*>(shareMemory.data());
+    uint16_t data = 0, dataLast = 0;
+    uint8_t heartErrCnt = 0;
+    uint8_t logicState = 1;    //logic初始值为异常状态，等待其心跳刷新后开始进行心跳超时判断
+    if(shareData != nullptr)
+    {
+        while(1)
+        {
+            linuxDly(500);
+            data = *(uint16_t *)(shareData + offset);
+
+            if(data == dataLast)
+            {
+                if((logicState == 0) && (++heartErrCnt >= 14))
+                {
+                    zprintf1("|||heartManageThread||| logic heart timeout, cs reset\n");
+                    ((cs_can *)para)->cs_can_reset_sem();
+                    heartErrCnt = 0;
+                    logicState = 1; //logic状态异常
+                }
+            }
+            else
+            {
+                heartErrCnt = 0;
+                logicState = 0;     //logic状态正常
+            }
+
+            dataLast = data;
+        }
+    }
+    else
+    {
+        zprintf1("|||heartManageThread||| failed to get sharedata pointer");
+    }
+
+    return NULL;
+}
+
+
 /***********************************************************************************
  * 函数名：cs_protocol_init
  * 功能：cs协议初始化函数 供协议层回调的cs协议初始化函数
@@ -3072,6 +3128,7 @@ int cs_can::cs_config_init(void)
     pthread_create(&reset_id, NULL, max_reset_process, (void *)this);
     pthread_create(&initproid, NULL, cs_protocol_init, (void *)this);
     pthread_create(&thread_shake, NULL, func, (void *)this);
+    pthread_create(&heartManageId, NULL, heartManageThread, (void *)this);
     return 0;
 }
 /***********************************************************************************
@@ -3304,6 +3361,12 @@ cs_can::~cs_can()
         pthread_cancel(reset_id);
         pthread_join(reset_id, NULL);
         reset_id = 0;
+    }
+    if(heartManageId != 0)
+    {
+        pthread_cancel(heartManageId);
+        pthread_join(heartManageId, NULL);
+        heartManageId = 0;
     }
 }
 
