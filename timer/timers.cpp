@@ -14,7 +14,7 @@ void linuxDly(int s, int ms)
     tim.tv_sec = s;
     tim.tv_usec = ms*1000;
     select(0,NULL,NULL,NULL, &tim);
-    zprintf1("select over!\n");
+    // zprintf1("select over!\n");
 }
 
 void linuxDly(int ms)

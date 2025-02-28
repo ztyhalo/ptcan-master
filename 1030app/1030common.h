@@ -13,7 +13,7 @@ using namespace std;
 
 #define PTCAN_VERSION_H 1
 #define PTCAN_VERSION_M 7
-#define PTCAN_VERSION_L 1
+#define PTCAN_VERSION_L 2
 
 #define PT_INPUTPARA_MAX  5
 #define PT_OUTPUTPARA_MAX 1
