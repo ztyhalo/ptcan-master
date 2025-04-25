@@ -14,11 +14,11 @@
 
 
 
-#include "can_protocol.h"
-#include "bitset"
-#include "reflect.h"
-#include "driver.h"
-#include "ptxml.h"
+// #include "can_protocol.h"
+// #include "bitset"
+// #include "reflect.h"
+// #include "driver.h"
+// #include "ptxml.h"
 #include "ptdataapp.h"
 
 
@@ -59,9 +59,9 @@ public:
     }
     cDataUnit()
     {
-        ;
+        memset(this, 0x00, sizeof(cDataUnit));
     }
-    void set_all(cDataUnit val)
+    void set_all(const cDataUnit & val)
     {
         *this = val;
     }
@@ -101,10 +101,9 @@ public:
     int         buf_size;
     sDataUnit * add_p;
 public:
-    Pt_Devs_ShareData(int dri = 1){
-        dri_id = dri;
-        buf_size = 0;
-        add_p = NULL;
+    Pt_Devs_ShareData(int dri = 1):dri_id(dri),buf_size(0),add_p(NULL)
+    {
+        ;
     }
     ~Pt_Devs_ShareData(){
        zprintf3("destory Pt_Devs_ShareData!\n");
@@ -132,8 +131,9 @@ public:
     int dri_id;
     QTS_DATAS_T<sDataUnit> qtread;
 public:
-    PRO_ShreDATA(int dri = 1){
-        dri_id = dri;
+    PRO_ShreDATA(int dri = 1):dri_id(dri)
+    {
+        ;
     }
     void creat_pt_share(int size, QString keyid);
     void dev_share_data_init(int devid, int childid,int innum);
@@ -141,7 +141,7 @@ public:
     template <class DTYPE>
     void set_data_value(int devid, int childid,int s,int size,DTYPE * val){
         int devoff = devid + childid *FATHER_DEV_MAX;
-        sDataUnit midval = {dri_id, devid+1, childid, s, 0 };
+        sDataUnit midval = {dri_id, devid+1, childid, s, 0, 0};
         for(int i = 0; i < size; i++){
             midval.pointid = s+i;
             midval.value = *(val+i);
@@ -155,10 +155,11 @@ class IO_ShareData:public QT_Share_MemT<cDataUnit>,public Dev_Map_T<cDataUnit>
 public:
     int         dri_id;
 public:
-    IO_ShareData(int dri = 1){
-        dri_id = dri;
+    IO_ShareData(int dri = 1):dri_id(dri)
+    {
+        ;
     }
-    ~IO_ShareData(){
+    virtual ~IO_ShareData(){
        zprintf3("destory Pt_Devs_ShareData!\n");
 
     }

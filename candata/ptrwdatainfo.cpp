@@ -18,10 +18,10 @@ using namespace std;
 
 void Pt_ShareData::set_pt_data(sDataUnit * add, double val)
 {
-    if((add -this->data) >= this->size/sizeof(sDataUnit))
+    if((add -this->m_data) >= (int)(this->m_size/sizeof(sDataUnit)))
     {
-        zprintf1("set data off add 0x%x data 0x%x  %d %d\n", add, this->data,
-                 add -this->data, this->size/sizeof(sDataUnit));
+        zprintf1("set data off add 0x%x data 0x%x  %d %d\n", add, this->m_data,
+                 add -this->m_data, this->m_size/sizeof(sDataUnit));
         return;
     }
     lock_qtshare();
@@ -31,10 +31,10 @@ void Pt_ShareData::set_pt_data(sDataUnit * add, double val)
 
 void Pt_ShareData::set_pt_out_data(sDataUnit * add, double val, int st)
 {
-    if((add -this->data) >= this->size/sizeof(sDataUnit))
+    if((add -this->m_data) >= (int)(this->m_size/sizeof(sDataUnit)))
     {
-        zprintf1("set data off add 0x%x data 0x%x  %d %d\n", add, this->data,
-                 add -this->data, this->size/sizeof(sDataUnit));
+        zprintf1("set data off add 0x%x data 0x%x  %d %d\n", add, this->m_data,
+                 add -this->m_data, this->m_size/sizeof(sDataUnit));
         return;
     }
     lock_qtshare();
@@ -78,11 +78,11 @@ void Pt_Devs_ShareData::creat_pt_share(int size, QString keyid)
 }
 void Pt_Devs_ShareData::reset_data_value(void)
 {
-    sDataUnit * valp;
+
 
     if(add_p != NULL)
     {
-        valp = add_p;
+        sDataUnit * valp = add_p;
         for(int i = 0; i < buf_size; i++)
         {
             valp->value = 0;
@@ -185,7 +185,7 @@ cDataUnit * IO_ShareData::get_node_addr(int devid, int node)
 
 void IO_ShareData::set_pt_node_val(int devid, int innum, cDataUnit val)
 {
-    set_data(get_node_addr(devid, innum), val);
+    this->set_data(get_node_addr(devid, innum), val);
 }
 
 

@@ -2,10 +2,7 @@
 #define __1030COMMON_H__
 
 #include <stdint.h>
-#include "run_mode.h"
-#include <string>
 #include "candatainfo.h"
-#include "bsdev.h"
 #include "tkcommon.h"
 #include "zprint.h"
 
@@ -177,7 +174,7 @@ typedef enum
     CS_CONFIGING,
 } CSCONFIGSTATE;
 
-class CAN_DEV_APP
+class CAN_DEV_APP_INFO
 {
 public:
     uint16_t  dev_off;
@@ -203,26 +200,50 @@ public:
     Max_State_Pro      *stateinfo;
     MsgMng             *msgmng_p;
     Pt_Devs_ShareData  *devdata_p;
+public:
+    CAN_DEV_APP_INFO()
+    {
+        memset(this, 0x00, sizeof(CAN_DEV_APP_INFO));
+    }
+    ~CAN_DEV_APP_INFO()
+    {
+        ;
+    }
+};
+
+class CAN_DEV_APP:public CAN_DEV_APP_INFO
+{
+public:
+
     bitset< HEART_MAX > framark;    // 接收帧完整性验证
     can_dev_para        para;
 
 public:
     CAN_DEV_APP()
     {
-        memset(this, 0x00, offsetof(CAN_DEV_APP, framark));
         framark.reset();
-        iodata    = NULL;
-        config_p  = NULL;
         msgmng_p  = MsgMng::GetMsgMng();
-        stateinfo = NULL;
-        devdata_p = NULL;
+        para.id = 0;          //设备从机号
+        para.innum = 0;       //输入个数
+        para.outnum = 0;      //输出个数
+        para.polltime = 0;    //查询周期,单位(ms)
+        para.type = 0;
+        para.enable = 0;
+        para.link_num = 0;
+        para.auto_reset = 0;
     }
     ~CAN_DEV_APP()
     {
         if(config_p != NULL)
+        {
             delete[] config_p;
+            config_p = NULL;
+        }
         if(iodata != NULL)
+        {
             delete[] iodata;
+            iodata = NULL;
+        }
     }
 
     int set_config_head(void)

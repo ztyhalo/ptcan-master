@@ -6,13 +6,12 @@
 
 QT       += core xml network
 QT       -= gui
-CONFIG += release
 
 TARGET = ptcan
 CONFIG   += console
 CONFIG   -= app_bundle
 
-QMAKE_CXXFLAGS += -std=c++0x
+QMAKE_CXXFLAGS += -std=c++11
 
 TEMPLATE = app
 
@@ -29,7 +28,41 @@ if(contains(TEMPLATE,"lib")){
 MOC_DIR = $$OUT_PWD/moc_tmp
 OBJECTS_DIR = $$OUT_PWD/o_tmp
 
-DEFINES += ARM_PLATFORM
+linux-arm-gnueabi-g++{
+    CONFIG(debug, debug|release){
+        QBUILD = $$PWD/../bin/debug/arm/exe
+    }else{
+        QBUILD = $$PWD/../bin/release/arm/exe
+    }
+    QLIB = $$PWD/Libs/arm/lib
+    QINCLUDE = $$PWD/Libs/arm/include
+    message("arm")
+    DEFINES += ARM
+    DEFINES += ARM_PLATFORM
+    DEFINES += SUPPORT_DBUS
+
+}
+linux-gnueabi-oe-g++ {
+    CONFIG(debug, debug|release){
+        message("debug")
+        QBUILD = $$PWD/../bin/debug/arm/exe
+    }else{
+        message("release")
+        QBUILD = $$PWD/../bin/release/arm/exe
+    }
+    QLIB = $$PWD/Libs/arm/lib
+    QINCLUDE = $$PWD/Libs/arm/include
+    message("arm")
+    DEFINES += ARM
+    DEFINES += ARM_PLATFORM
+    DEFINES += SUPPORT_DBUS
+
+}
+
+COMMLIB_PATH = $$PWD/../public/commonli
+LIBS +=  -L$$QBUILD -lzcommonlib
+
+# DEFINES += ARM_PLATFORM
 
 #linux-arm-gnueabi-g++{
 #           DEFINES += ARM_PLATFORM
@@ -53,17 +86,30 @@ linux-g++{
 
 DEFINES += NO_LOCK_ERROR
 #DEFINES += END_NO_RESET
-INCLUDEPATH = .\
-        mutex\
-        epoll\
-        timer\
-        zprint\
+
+INCLUDEPATH += $${COMMLIB_PATH}/.\
+            $${COMMLIB_PATH}/bufmodel\
+            $${COMMLIB_PATH}/date\
+            $${COMMLIB_PATH}/epoll\
+            $${COMMLIB_PATH}/mutex\
+            $${COMMLIB_PATH}/prodata\
+            $${COMMLIB_PATH}/prodata/sem\
+            $${COMMLIB_PATH}/reflect\
+            $${COMMLIB_PATH}/sempro\
+            $${COMMLIB_PATH}/sigslot\
+            $${COMMLIB_PATH}/socket\
+            $${COMMLIB_PATH}/tcp\
+            $${COMMLIB_PATH}/timer\
+            $${COMMLIB_PATH}/udp\
+            $${COMMLIB_PATH}/file\
+            $${COMMLIB_PATH}/zprint
+
+
+
+INCLUDEPATH += .\
         canbus\
         canpro\
         tkcommon\
-        reflect\
-        prodata\
-        prodata/sem\
         ptxml\
         msg\
         candata\
@@ -72,12 +118,11 @@ INCLUDEPATH = .\
         tk200
 
 
+
+
 SOURCES += main.cpp \
-    timer/timers.cpp\
     canbus/can_bus.cpp \
-    zprint/zprint.cpp \
     canpro/can_protocol.cpp \
-    prodata/sem/syssem.cpp \
     msg/driver.cpp \
     msg/msg.cpp \
     msg/MsgMng.cpp \
@@ -90,23 +135,14 @@ SOURCES += main.cpp \
     tk200/tk200pro.cpp \
     tk200/tk200cs.cpp \
     tkcommon/tkcommon.cpp \
-    tkcommon/bsdev.cpp \
-    zprint/netprint.cpp
+    tkcommon/bsdev.cpp
+
 
 HEADERS += \
-    epoll/e_poll.h \
-    timer/timers.h \
     canbus/can_bus.h \
     canbus/can_relate.h \
-    zprint/version.h \
-    zprint/zprint.h \
     canpro/can_protocol.h \
-    prodata/pro_data.h \
-    prodata/clist.h \
-    prodata/sem/syssem.h \
     ptxml/ptxml.h \
-    reflect/reflect.h \
-    reflect/xmlprocess.h \
     msg/define.h \
     msg/driver.h \
     msg/msg.h \
@@ -115,19 +151,13 @@ HEADERS += \
     msg/msgtype.h \
     candata/candata.h \
     candata/candatainfo.h \
-    prodata/semshare.h \
-    prodata/sharemem.h \
-    prodata/ptdataapp.h \
     1030app/1030common.h \
     1030app/1030pro.h \
     1030app/run_mode.h \
     modbus/modbuscrc.h \
-    prodata/zmap.h \
     candata/ptrwdatainfo.h \
     tk200/tk200pro.h \
     tk200/tk200cs.h \
     tkcommon/tkcommon.h \
-    mutex/mutex.h \
-    tkcommon/bsdev.h \
-    zprint/netprint.h
+    tkcommon/bsdev.h
 

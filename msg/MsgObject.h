@@ -2,7 +2,7 @@
 #define MSGOBJECT_H
 
 #include <sys/msg.h>
-#include <string.h>
+// #include <string.h>
 #include <QDebug>
 
 #define MSG_OBJECT_LENGTH  1024
@@ -28,7 +28,7 @@ private:
     sMsgType msg_data;
 
 public:
-    MsgObject(int key);
+    explicit MsgObject(int key);
     ~MsgObject();
     bool create_object(void);
     bool delete_object(void);

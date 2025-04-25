@@ -1,7 +1,7 @@
 #ifndef MSGTYPE_H
 #define MSGTYPE_H
 
-#include "define.h"
+// #include "define.h"
 #include "MsgObject.h"
 #include <unistd.h>
 

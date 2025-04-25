@@ -13,12 +13,12 @@
 #define __TK200PRO_H__
 
 #include "can_protocol.h"
-#include "pro_data.h"
-#include "bitset"
-#include "reflect.h"
-#include "driver.h"
-#include "ptxml.h"
-#include "candatainfo.h"
+// #include "pro_data.h"
+// #include "bitset"
+// #include "reflect.h"
+// #include "driver.h"
+// #include "ptxml.h"
+// #include "candatainfo.h"
 #include "tk200cs.h"
 #include "1030common.h"
 #include <pthread.h>
@@ -82,9 +82,10 @@ public:
 
 
 public:
-    TK200_Pro(ncan_protocol * pro, Pt_Devs_ShareData *data, QString key){
-        pro_p = pro;
-        data_p = data;
+    TK200_Pro(ncan_protocol * pro, Pt_Devs_ShareData *data, const QString & key):pro_p(pro),data_p(data)
+    {
+        // pro_p = pro;
+        // data_p = data;
         int i;
         for(i = 0; i < 2; i++)
         {

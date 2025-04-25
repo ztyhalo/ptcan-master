@@ -14,12 +14,12 @@
 
 
 
-#include "can_protocol.h"
-#include "bitset"
+// #include "can_protocol.h"
+// #include "bitset"
 #include "reflect.h"
-#include "driver.h"
+// #include "driver.h"
 #include "ptxml.h"
-#include "ptrwdatainfo.h"
+// #include "ptrwdatainfo.h"
 
 
 using namespace std;
@@ -82,6 +82,16 @@ struct can_dev_para
     uint16_t link_num;
     uint16_t auto_reset;    //
 };
+
+#define CAN_DEV_PARA_INIT(para) do {\
+        para.id = 0;       \
+        para.innum = 0;     \
+        para.outnum = 0;    \
+        para.polltime = 0;   \
+        para.type = 0;\
+        para.enable = 0;\
+        para.link_num = 0;\
+        para.auto_reset = 0;} while(0)
 
 struct can_dev_para_t
 {

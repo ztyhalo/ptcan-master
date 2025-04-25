@@ -1,11 +1,9 @@
 #include "MsgMng.h"
 #include "candata.h"
 
-MsgMng::MsgMng()
+MsgMng::MsgMng():pRecvMsg(NULL),pSendMsg(NULL),testcycle(0),dest_id(0)
 {
-    testcycle =0;
     soure_id.app = 0;
-    dest_id = 0;
     pthread_mutex_init(&WaitListMutex, NULL);
 }
 
@@ -42,7 +40,7 @@ bool MsgMng::Init(int recvkey,int sendkey, void * arg)
     return true;
 }
 
-bool MsgMng::InsertWaitMsg( Type_MsgAddr &waitid,uint16_t type,sem_t * pack)
+bool MsgMng::InsertWaitMsg( const Type_MsgAddr &waitid,uint16_t type,sem_t * pack)
 {
     sWaitMsg data;
 
@@ -50,9 +48,11 @@ bool MsgMng::InsertWaitMsg( Type_MsgAddr &waitid,uint16_t type,sem_t * pack)
     data.waitid = waitid;
     data.type = type;
     data.pack = pack;
+    (void) data;
     if(WaitDriverList.size() <WAIT_MSG_MAX)
     {
-        WaitDriverList.append(data);
+        // WaitDriverList.append(data);
+        // WaitDriverList.
         pthread_mutex_unlock(&WaitListMutex);
         return true;
     }
@@ -62,17 +62,18 @@ bool MsgMng::InsertWaitMsg( Type_MsgAddr &waitid,uint16_t type,sem_t * pack)
 
 bool MsgMng::CheckWaitMsg( Type_MsgAddr waitid,uint16_t type)
 {
-    lWaitList::iterator item;
+    // lWaitList::iterator item;
 
     pthread_mutex_lock(&WaitListMutex);
-
-    for(item= WaitDriverList.begin(); item != WaitDriverList.end(); ++item)
+    QList <sWaitMsg>::iterator item =  WaitDriverList.begin();
+    while(item != WaitDriverList.end())
     {
         if(((*item).type == type)&&((*item).waitid.app == waitid.app))
         {
             pthread_mutex_unlock(&WaitListMutex);
             return true;
         }
+        ++item;
     }
     pthread_mutex_unlock(&WaitListMutex);
     return false;
@@ -80,11 +81,10 @@ bool MsgMng::CheckWaitMsg( Type_MsgAddr waitid,uint16_t type)
 
 bool MsgMng::AckWaitMsg( Type_MsgAddr waitid,uint16_t type)
 {
-    lWaitList::iterator item;
 
     pthread_mutex_lock(&WaitListMutex);
 
-    for(item= WaitDriverList.begin(); item != WaitDriverList.end(); ++item)
+    for(lWaitList::iterator item =  WaitDriverList.begin(); item != WaitDriverList.end(); ++item)
     {
         if(((*item).type == type)&&((*item).waitid.app == waitid.app))
         {

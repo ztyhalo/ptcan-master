@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <semaphore.h>
-#include "msg.h"
+// #include "msg.h"
 
 #define TEST_DATAIN_CNT   16
 #define TEST_DATAOUT_CNT  12

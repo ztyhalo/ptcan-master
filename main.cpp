@@ -1,21 +1,18 @@
 #include <QTextCodec>
 #include <can_bus.h>
 #include <stdio.h>
-#include "e_poll.h"
+
 #include "timers.h"
-#include "pthread.h"
-#include "can_protocol.h"
-#include "pro_data.h"
+
+
 #include "candata.h"
-#include "tk200pro.h"
+#include <signal.h>
 #include "zprint.h"
 #include <QCoreApplication>
 #include "netprint.h"
 
 #include <string>
-#include <vector>
-#include <iostream>
-#include <fstream>
+
 
 #include <string.h>
 #ifdef AARCH64_PLATFORM
@@ -29,7 +26,7 @@
 #include <dirent.h>
 
 Can_Data *gCanInfo = NULL;
-// Print_Server * netp = NULL;
+Print_Server * netp = NULL;
 
 void SignalFunc(int var)
 {
@@ -51,7 +48,9 @@ void SignalFunc(int var)
 O_Timer timr;
 int     printf_time_callback(TEvent *tmpara)
 {
+    (void)tmpara;
     nprintf("info is!\n");
+    return 0;
 }
 
 int main(int argc, char *argv[])
@@ -125,7 +124,8 @@ int main(int argc, char *argv[])
                 p->tm_mday, p->tm_hour, p->tm_min, p->tm_sec);    // 把格式化的时间写入字符数组中
         pr_file += name;
 
-        debug_p->printf_init(pr_file.c_str( ), 0);
+        // debug_p->printf_init(pr_file.c_str( ), 0);
+        PRINTF_CLASS::getInstance()->printf_class_init(path, pr_file);
     }
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     zprintf3("Project: %s\r\n", "ptcan1 for KTC256 ");
@@ -158,14 +158,14 @@ int main(int argc, char *argv[])
         *point++ = atoi(argv[i]);
     }
 
-    if ((type == "1030") || (type == "236_1") || (type == "236_2"))
-    {
-        gNetP = new Print_Server;
-    }
-    else
-    {
-        gNetP = new Print_Server(0xf420, 0xf421);
-    }
+    // if ((type == "1030") || (type == "236_1") || (type == "236_2"))
+    // {
+    //     gNetP = new Print_Server;
+    // }
+    // else
+    // {
+    //     gNetP = new Print_Server(0xf420, 0xf421);
+    // }
 
 #ifdef ARM_PLATFORM
     string dir = "/opt/config/driver/device/" + type + ".xml";

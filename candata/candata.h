@@ -13,9 +13,9 @@
 #define __CANDATA_H__
 
 #include "can_protocol.h"
-#include "pro_data.h"
-#include "bitset"
-#include "reflect.h"
+// #include "pro_data.h"
+// #include "bitset"
+// #include "reflect.h"
 #include "driver.h"
 #include "ptxml.h"
 #include "candatainfo.h"
@@ -48,15 +48,9 @@ public:
     TK200_Pro *tk200;
 
 public:
-    Can_Data( )
+    Can_Data( ):canid(0),canbus(NULL),canpro(NULL),cs1030(NULL),tk200(NULL)
     {
-
         memset(&d_info, 0x00, sizeof(d_info));
-        canid  = 0;
-        canbus = NULL;
-        canpro = NULL;
-        tk200  = NULL;
-        cs1030 = NULL;
     }
     ~Can_Data( )
     {
@@ -90,7 +84,7 @@ public:
         }
     }
     void creat_can_bus_pro(void);
-    int  can_read_xml(QString name, QString name1, QString name2);
+    int  can_read_xml(const QString  name, const QString  name1, const QString  name2);
     int  can_app_init(void);
     int  get_innode_info(int dev, int child, int innode, can_inode_info &val);
 };

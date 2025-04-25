@@ -21,17 +21,19 @@
 #include <QTextStream>
 #include <QXmlStreamWriter>
 #include <QStringList>
-#include <iostream>
+// #include <iostream>
+#include "zmap.h"
 #include <QDebug>
 #include "tk200pro.h"
 
 void * tk200_reset_process(void * para)
 {
-    int i = 0;
-    TK200_Pro * tk200_pro_p = ((TK200_Pro *)para);
+    // int i = 0;
+    TK200_Pro * tk200_pro_p = static_cast<TK200_Pro*>(para); //((TK200_Pro *)para);
     while(1){
         sem_wait(&gTk200_Rest_Meg);
         zprintf1("tk200 reset start!\n");
+        int i;
         for(i = 0; i < 2; i++){
             tk200_pro_p->cs200[i].cs_dev_reset();
             tk200_pro_p->cs200[i].set_reset_data_init();
@@ -56,11 +58,11 @@ int TK200_State_Mem::tk200_state_data_init(QString key)
     if(this->creat_data( 2*sizeof(CS_DataType)+ 3*sizeof(PT_Dev_State), key) == NULL)
         return -1;
     for(i = 0; i < 2; i++){
-        this->father->cs200[i].data = (CS_DataType *)(this->data+i*sizeof(CS_DataType));
+        this->father->cs200[i].data = (CS_DataType *)(this->m_data+i*sizeof(CS_DataType));
         this->father->cs200[i].mem = this;
     }
     for(i = 0; i < 3; i++){
-        this->father->io200[i].data = ((PT_Dev_State *)(this->data+ 2*sizeof(CS_DataType))) +i;
+        this->father->io200[i].data = ((PT_Dev_State *)(this->m_data+ 2*sizeof(CS_DataType))) +i;
 
         this->father->io200[i].mem = this;
     }
@@ -164,7 +166,7 @@ int TK200_Pro::tk200_dev_init(void)
 int tk200_output(void * midp, soutDataUnit val)
 {
 //    timeprf("write out!\n\n");
-    TK200_Pro * pro = (TK200_Pro *) midp;
+    TK200_Pro * pro = static_cast<TK200_Pro *>(midp);
     if(MAP_IS_HAVE(pro->devmap, val.parentid-1))  //设备存在
     {
         pro->devmap[val.parentid-1]->data_send(val);

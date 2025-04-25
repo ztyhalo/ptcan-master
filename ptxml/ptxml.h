@@ -1,10 +1,11 @@
 #ifndef PTXML_H
 #define PTXML_H
 
-#include "QVector"
+#include <QVector>
 #include "xmlprocess.h"
-
+#include <QTextStream>
 #include <QFile>
+#include <QDebug>
 
 using namespace std;
 
@@ -38,17 +39,17 @@ public:
     int parentid;
     QVector<dev_info<Dev,Ext,INode, ONode> > dev;
 
-    int driver_write_xml(QString name);
-    int driver_read_xml(QString name);
+    int driver_write_xml(const QString & name);
+    int driver_read_xml(const QString & name);
 
-    int continue_write_dev(QVector<dev_info<Dev,Ext,INode, ONode> > devpra, QDomDocument doc, QDomElement father);
+    int continue_write_dev(const QVector<dev_info<Dev,Ext,INode, ONode> > & devpra, QDomDocument doc, QDomElement father);
     int continue_read_dev(QVector<dev_info<Dev,Ext,INode, ONode> > &devpra, QDomElement father);
 };
 
 template <class Dri, class Dev, class Ext, class INode, class ONode,\
           class TDri, class TDev,class TExt, class TINode, class TONode>
 int driver_info<Dri,Dev,Ext,INode, ONode,TDri,TDev,TExt,TINode, TONode>::\
-continue_write_dev(QVector<dev_info<Dev,Ext,INode, ONode> > devpra, QDomDocument doc, QDomElement father)
+continue_write_dev(const QVector<dev_info<Dev,Ext,INode, ONode> > & devpra, QDomDocument doc, QDomElement father)
 {
     if(devpra.size() > 0)
     {
@@ -79,17 +80,22 @@ continue_write_dev(QVector<dev_info<Dev,Ext,INode, ONode> > devpra, QDomDocument
 
 template <class Dri, class Dev, class Ext, class INode, class ONode,\
           class TDri, class TDev,class TExt, class TINode, class TONode>
-int driver_info<Dri,Dev,Ext,INode, ONode,TDri,TDev,TExt,TINode, TONode>::driver_write_xml(QString name)
+int driver_info<Dri,Dev,Ext,INode, ONode,TDri,TDev,TExt,TINode, TONode>::driver_write_xml(const QString & name)
 {
 
     int node = 0;
-    QFile file(name);
 
-    if(file.exists())
+
+    if(QFile::exists(name))
     {
-        file.remove();
-        QFile file(name);
+        if(!QFile::remove(name))
+        {
+            qDebug() << "delete file " << name << " fail!";
+            return -1;
+        }
     }
+
+    QFile file(name);
     if(!file.open(QIODevice::WriteOnly))
         return false;
 
@@ -188,7 +194,7 @@ continue_read_dev(QVector<dev_info<Dev,Ext, INode, ONode> > &devvec,QDomElement 
 
 template <class Dri, class Dev, class Ext, class INode, class ONode,\
           class TDri, class TDev,class TExt, class TINode, class TONode>
-int driver_info<Dri,Dev,Ext,INode, ONode,TDri,TDev,TExt,TINode, TONode>::driver_read_xml(QString name)
+int driver_info<Dri,Dev,Ext,INode, ONode,TDri,TDev,TExt,TINode, TONode>::driver_read_xml(const QString & name)
 {
     QDomDocument doc;
 
@@ -235,10 +241,10 @@ public:
     QString name;
     Dri dri_info;
 
-    int read_xml_dri_para(QString name, QString para);
+    int read_xml_dri_para(const QString & name, const QString & para);
 };
 template <class Dri, class TDri>
-int Driver_Para<Dri,TDri>::read_xml_dri_para(QString name, QString para)
+int Driver_Para<Dri,TDri>::read_xml_dri_para(const QString & name, const QString & para)
 {
     QDomDocument doc;
 

@@ -1,8 +1,10 @@
 #include "driver.h"
-#include "MsgMng.h"
+#include "QDebug"
 
-driver::driver()
+driver::driver():ComState(COMSTATE_NORMAL)
 {
+    memset(&DriverInfo, 0x00, sizeof(DriverInfo));
+    memset(&ParamInfo, 0x00, sizeof(ParamInfo));
 
 }
 

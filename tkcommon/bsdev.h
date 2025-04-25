@@ -2,9 +2,11 @@
 #define __BSDEV_H__
 
 #include <stdint.h>
-#include "run_mode.h"
-#include <string>
-#include "candatainfo.h"
+// #include "run_mode.h"
+// #include <string>
+ // #include "candatainfo.h"
+#include <bitset>
+#include "zprint.h"
 
 using namespace std;
 #define BS_MACHINE_NUM      128
@@ -20,7 +22,8 @@ typedef union
     }bsbit;
     uint16_t bsvalue;
 }BSINFO;
-class BS_Dev
+
+class BS_Dev_info
 {
 public:
     uint8_t dev_off;
@@ -34,13 +37,27 @@ public:
     uint8_t ppstate;
     uint8_t zsnum;
     BSINFO polldata[BS_MACHINE_NUM];
+public:
+    BS_Dev_info()
+    {
+        memset(this, 0x00, sizeof(BS_Dev_info));
+    }
+    ~BS_Dev_info()
+    {
+        ;
+    }
+};
+
+class BS_Dev:public BS_Dev_info
+{
+public:
     bitset<BS_MACHINE_NUM>    bs;
     bitset<BS_MACHINE_NUM>    zs;
     bitset<BS_MACHINE_NUM>    pp;
     bitset<BS_MACHINE_NUM>    ppsty;
 public:
     BS_Dev(){
-        memset(this,0x00, offsetof(BS_Dev,bs));
+        ;
     }
     void save_poll_data(int addr, int size,uint8_t * data);
     void poll_data_process(void);

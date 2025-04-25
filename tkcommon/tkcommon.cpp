@@ -22,9 +22,7 @@
 #include <QTextStream>
 #include <QXmlStreamWriter>
 #include <QStringList>
-#include <iostream>
 #include <QDebug>
-#include "1030common.h"
 #include "tk200pro.h"
 
 
@@ -69,7 +67,7 @@ void Dev_Node_Pro::add_dev_node(uint8_t node, uint16_t time)
 void Dev_Node_Pro::dev_node_reset(void)
 {
     typename QMap<uint8_t, Node_Shake>::iterator iter;
-     for(iter = nodemap.begin(); iter != nodemap.end(); iter++)
+     for(iter = nodemap.begin(); iter != nodemap.end(); ++iter)
      {
         iter.value().node_reset();
      }
@@ -86,7 +84,7 @@ void Dev_Node_Pro::set_share_data(uint8_t node, uint8_t val)
 void Dev_Node_Pro::poll_dev_node(void)
 {
     typename QMap<uint8_t, Node_Shake>::iterator iter;
-     for(iter = nodemap.begin(); iter != nodemap.end(); iter++)
+     for(iter = nodemap.begin(); iter != nodemap.end(); ++iter)
      {
 
             if(iter.value().shake_process())
@@ -106,7 +104,7 @@ void Dev_Node_Pro::dev_node_pro_init(void)
 
         double t = ((double)ms)/1000;
         dtimer.add_event(t, dev_node_time_callback, this);
-        dtimer.start();
+        dtimer.start("dev timer");
     }
 }
 
@@ -175,24 +173,26 @@ void PT_Dev_Virt::reset_data_init(void)
  ***********************************************************************************/
 int tk_io_send_condition(void * para)
 {
+    (void) para;
     return 1;
 }
 
 int tk_io_poll_send_condition(void * para)
-{    
+{
+    (void) para;
         return 1; 
 }
 
 int TK_IO_Dev::tk_io_reset_config(void)
 {
-    int err =0;
+    // int err =0;
     CANDATAFORM data;
 
     attr.configstate = 0;
     attr.iostate = TK_IO_INIT;
 //    err = read_config();
 
-    if(err == 0){
+    // if(err == 0){
 
         data.StdId = SET_FRAM_DEV(0x450, io_id);
         data.IDE = 0;
@@ -201,8 +201,8 @@ int TK_IO_Dev::tk_io_reset_config(void)
 
         pro_p->can_protocol_send(data);
         return 0;
-    }
-    return -1;
+    // }
+    // return -1;
 }
 void TK_IO_Dev::set_io_conf(uint8_t * buf)
 {
@@ -231,8 +231,8 @@ int io_poll_callback(CANp_TIME_ET * poll)
 }
 int tk_power_requireack_idprocess(void * tkio_dev, CANDATAFORM data)
 {
-    int err = 0;
-    TK_IO_Dev * midp = (TK_IO_Dev *) tkio_dev;
+    // int err = 0;
+    TK_IO_Dev * midp = static_cast<TK_IO_Dev *>(tkio_dev);
     uint8_t   dlcsize = 0;
     if((midp->dev_para.innum+midp->dev_para.outnum)%4){
         dlcsize = (midp->dev_para.innum+midp->dev_para.outnum)/4 + 1;
@@ -254,7 +254,7 @@ int tk_power_requireack_idprocess(void * tkio_dev, CANDATAFORM data)
             midp->add_dev_timer(2, &midp->pollFrame);
 
         }
-        err = midp->pro_p->pro_del_buf_frame(SET_FRAM_DEV(0x450, midp->io_id), 0);
+        int err = midp->pro_p->pro_del_buf_frame(SET_FRAM_DEV(0x450, midp->io_id), 0);
         if(err == 0)
                 zprintf3("config over\n");
         else
@@ -269,7 +269,7 @@ int tk_power_requireack_idprocess(void * tkio_dev, CANDATAFORM data)
  ***********************************************************************************/
 int tk_start_ask_idprocess(void * tkio_dev, CANDATAFORM data)
 {
-    TK_IO_Dev * midp = (TK_IO_Dev *) tkio_dev;
+    TK_IO_Dev * midp = static_cast<TK_IO_Dev *>(tkio_dev);
     zprintf3("call back 1\n");
     if(data.DLC == 0)
     {
@@ -318,13 +318,13 @@ int tk_start_ask_idprocess(void * tkio_dev, CANDATAFORM data)
  ***********************************************************************************/
 int tk_out_controlack_idprocess(void * tkio_dev, CANDATAFORM data)
 {   
-    int err;
-    TK_IO_Dev * midp = (TK_IO_Dev *) tkio_dev;
+    // int err;
+    TK_IO_Dev * midp = static_cast<TK_IO_Dev *>(tkio_dev);
 
     if(data.DLC == 2)
     {
         data.StdId = SET_FRAM_DEV(0x451, midp->io_id);;
-         err = midp->pro_p->pro_del_buf_frame(data);
+         int err = midp->pro_p->pro_del_buf_frame(data);
          if(err == 0)
          {
             zprintf4("output success\n");
@@ -350,7 +350,7 @@ int tk_out_controlack_idprocess(void * tkio_dev, CANDATAFORM data)
  ***********************************************************************************/
 int tk_data_requireack_idprocess(void * tkio_dev, CANDATAFORM data)
 {
-    TK_IO_Dev * midp = (TK_IO_Dev *) tkio_dev;
+    TK_IO_Dev * midp = static_cast<TK_IO_Dev *>(tkio_dev);
     TK_FRAMEID  midfram;
     midfram.fram = data.StdId;
 
@@ -369,7 +369,7 @@ int tk_data_requireack_idprocess(void * tkio_dev, CANDATAFORM data)
 int poll_end_fram_idprocess(void * tkio_dev, CANDATAFORM data)
 {
     uint16_t   *     inmidp = NULL;
-    TK_IO_Dev * midp = (TK_IO_Dev *) tkio_dev;
+    TK_IO_Dev * midp = static_cast<TK_IO_Dev *>(tkio_dev);
     TK_FRAMEID  midfram;
     midfram.fram = data.StdId;
 
@@ -476,7 +476,7 @@ int poll_end_fram_idprocess(void * tkio_dev, CANDATAFORM data)
  ***********************************************************************************/
 int tk_change_ask_idprocess(void * tkio_dev, CANDATAFORM data)
 {
-    TK_IO_Dev * midp = (TK_IO_Dev *) tkio_dev;
+    TK_IO_Dev * midp = static_cast<TK_IO_Dev *>(tkio_dev);
 
     if(midp->attr.iostate == TK_IO_NORMAL)
     {
@@ -505,7 +505,8 @@ int tk_change_ask_idprocess(void * tkio_dev, CANDATAFORM data)
  ***********************************************************************************/
 int tk_frame_overtime_process(void * tkio_dev, CANDATAFORM  overmeg)
 {
-   TK_IO_Dev * midp = (TK_IO_Dev *) tkio_dev;
+    (void) overmeg;
+   TK_IO_Dev * midp = static_cast<TK_IO_Dev *>(tkio_dev);
     midp->attr.iostate = TK_IO_BUG;
     return 1;
 }
@@ -517,7 +518,8 @@ int tk_frame_overtime_process(void * tkio_dev, CANDATAFORM  overmeg)
  ***********************************************************************************/
 int tk_outframe_overtime_process(void * tkio_dev, CANDATAFORM  overmeg)
 {
-    TK_IO_Dev * midp = (TK_IO_Dev *) tkio_dev;
+    (void)overmeg;
+    TK_IO_Dev * midp = static_cast<TK_IO_Dev *>(tkio_dev);
     midp->delete_dev_timer();
     midp->attr.iostate = TK_IO_BUG;
     midp->attr.errcount = 0;
@@ -535,7 +537,8 @@ int tk_outframe_overtime_process(void * tkio_dev, CANDATAFORM  overmeg)
  ***********************************************************************************/
 int tk_datareqframe_overtime_process(void * tkio_dev, CANDATAFORM  overmeg)
 {
-   TK_IO_Dev * midp = (TK_IO_Dev *) tkio_dev;
+    (void) overmeg;
+   TK_IO_Dev * midp = static_cast<TK_IO_Dev *>(tkio_dev);
     midp->attr.errcount++;
     zprintf1("io dev overtimer!\n");
     if(midp->attr.errcount >= TK_IO_SATET_N)
@@ -609,7 +612,7 @@ void TK_IO_Dev::data_send(soutDataUnit  val)
  ***********************************************************************************/
 int tk100_output(void * midp, soutDataUnit val)
 {
-    TK_IO_Dev * pro = (TK_IO_Dev *) midp;
+    TK_IO_Dev * pro = static_cast<TK_IO_Dev *>(midp);
     pro->data_send(val);
     return 1;
 }
@@ -701,7 +704,7 @@ int TK_IO_Dev::pt_dev_init(void)
     /*****************输出控制帧 0x451******************************************/
             {
                 0,
-                SET_FRAM_DEV(0x451, io_id),                                  //帧id
+            SET_FRAM_DEV(0x451, io_id),                                  //帧id
                 20,                                     //超时时间
                 5,                                      //重发次数
                 0x00,                                   //应答帧

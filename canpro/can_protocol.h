@@ -1,15 +1,13 @@
 #ifndef CAN_PROTOCOL_H
 #define CAN_PROTOCOL_H
 #include <map>
-#include <vector>
-#include <algorithm>
 #include "can_bus.h"
 #include "timers.h"
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include "clist.h"
-
+#include <bitset>
 
 #define CAN_PROP_TIMEINTV 10
 #define TIME_INTERVAL     2
@@ -125,15 +123,13 @@ public:
     Get_Frame_Mapid     idfunc[2];
 
 public:
-    ncan_protocol(string n="",int can=0, int pro=0){
-        name = n;
-        canid = can;
-        proid =pro;
-        inter = 0;
-        errsize = 0;
+    ncan_protocol(const string & n="",int can=0, int pro=0):name(n),canid(can),inter(0),candrip(NULL),
+        proid(pro),errsize(0)
+    {
         type.reset();
 //        memset(pollfram, 0x00, sizeof(pollfram));
         memset(idfunc, 0x00, sizeof(idfunc));
+        memset(errbuf, 0x00, sizeof(errbuf));
 
     }
 

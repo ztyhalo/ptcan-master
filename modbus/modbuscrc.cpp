@@ -7,7 +7,7 @@
  * 功能：生成crc校验
  *
  ***********************************************************************************/
-void Modbus_CRCCal(uint8_t * dat,  uint8_t len, uint8_t *crc)
+void Modbus_CRCCal(const uint8_t * dat,  uint8_t len, uint8_t *crc)
 {
     uint8_t		i;
     uint8_t		j;

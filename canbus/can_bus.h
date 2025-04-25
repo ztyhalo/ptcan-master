@@ -4,8 +4,8 @@
 #include "can_relate.h"
 
 #include <string.h>
-#include <errno.h>
-#include <signal.h>
+// #include <errno.h>
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -14,11 +14,10 @@
 #include <semaphore.h>
 #include "e_poll.h"
 #include <sys/eventfd.h>
-#include <bitset>
-#include "timers.h"
-#include "pro_data.h"
-#include "zprint.h"
 
+
+#include "zprint.h"
+#include "pro_data.h"
 
 
 using namespace std;
@@ -69,14 +68,15 @@ public:
    pthread_mutex_t      send_mut;
 
     int (*rxcallback)(CanDriver * pro, CanFrame data);
-    READBUF  canread;
+    // READBUF  canread;
     WRITEBUF canwrite;
 
 public:
-    CanDriver(int fnum = 1):NCbk_Poll(fnum){
-        father_p = NULL;
-        interval = 5;
-        rxcallback = NULL;
+    CanDriver(int fnum = 1):NCbk_Poll(fnum),interval(5),CanFileP(0),father_p(NULL),rxcallback(NULL)
+    {
+        // father_p = NULL;
+        // interval = 5;
+        // rxcallback = NULL;
         pthread_mutex_init(&send_mut, NULL);
     }
     ~CanDriver(){
@@ -91,7 +91,7 @@ public:
 
     int can_bus_init(int registerdev ,int brate = 100000);
     void run();
-    int write_send_data(CANDATAFORM  & Msg);
+    int write_send_data(const CANDATAFORM  & Msg);
     int writeframe(const CANDATAFORM& f);
     int writeframe(const CanFrame& f);
 

@@ -18,7 +18,7 @@ typedef struct
     uint16_t            type;
     sem_t *            pack;
 }sWaitMsg;
-typedef QList <sWaitMsg> lWaitList;
+typedef QList<sWaitMsg> lWaitList;
 
 
 class MsgMng
@@ -46,7 +46,7 @@ public:
     }
     ~MsgMng();
     bool Init(int recvkey,int sendkey, void * arg=NULL);
-    bool InsertWaitMsg( Type_MsgAddr &waitid,uint16_t type,sem_t * pack);
+    bool InsertWaitMsg(const Type_MsgAddr &waitid,uint16_t type,sem_t * pack);
     void RecvMsgProcess(void * arg);
     void msgmng_send_msg(sMsgUnit *pdata, uint16_t size);
 };

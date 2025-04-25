@@ -13,16 +13,17 @@
 #define __TKCOMMON_H__
 
 #include "can_protocol.h"
-#include "pro_data.h"
+// #include "pro_data.h"
 #include "bitset"
-#include "reflect.h"
-#include "driver.h"
-#include "ptxml.h"
+// #include "reflect.h"
+// #include "driver.h"
+// #include "ptxml.h"
 #include "candatainfo.h"
-#include "msgtype.h"
+// #include "msgtype.h"
 #include "MsgMng.h"
 #include "timers.h"
-#include "mutex.h"
+#include "mutex_class.h"
+#include "ptrwdatainfo.h"
 
 using namespace std;
 
@@ -30,7 +31,7 @@ using namespace std;
 
 #define DEV_ID_MASK (~(0x000001f0))
 
-#define SET_FRAM_DEV(FRAM, ID) ((FRAM)&DEV_ID_MASK) | ((ID) << 4)
+#define SET_FRAM_DEV(FRAM, ID) ((FRAM)&DEV_ID_MASK) | ((uint32_t)(ID) << 4U)
 
 #define TK100INPUT_BUF_SIZE 32
 #define TK_IO_SATET_N       0x03
@@ -212,10 +213,9 @@ public:
     uint8_t dev_state;
 
 public:
-    PT_Dev_State()
+    PT_Dev_State():dev_enbale(0),dev_state(0)
     {
-        dev_enbale = 0;
-        dev_state  = 0;
+        ;
     }
     void set_dev_enbale(uint8_t val)
     {
@@ -239,6 +239,10 @@ public:
     TK200_State_Mem *mem;
 
 public:
+    DEV_SData_Pro():devid(0),data(NULL),mem(NULL)
+    {
+        ;
+    }
     void set_dev_enable(uchar val);
     void set_dev_state(uchar val);
 };
@@ -262,25 +266,18 @@ public:
     CANDATAFORM        pollFrame;    // poll frame;
 
 public:
-    PT_Dev_Virt(ncan_protocol *pro, Pt_Devs_ShareData *data, uint8_t type = 0)
+    explicit PT_Dev_Virt(ncan_protocol *pro, Pt_Devs_ShareData *data, uint8_t type = 0):devtype(type),dev_off(0),
+        child_id(0),polltimer(0),pro_p(pro),data_p(data)
     {
-        devtype   = type;
-        dev_off   = 0;
-        child_id  = 0;
-        pro_p     = pro;
-        data_p    = data;
-        polltimer = 0;
         msgmng_p  = MsgMng::GetMsgMng();
         memset(&pollFrame, 0x00, sizeof(pollFrame));
+        CAN_DEV_PARA_INIT(dev_para);
     }
 
-    PT_Dev_Virt()
+    PT_Dev_Virt():devtype(0),dev_off(0),
+        child_id(0),polltimer(0),pro_p(0),data_p(0)
     {
-        dev_off   = 0;
-        child_id  = 0;
-        polltimer = 0;
-        //       dev_en = 0;
-        dev_para.enable = 0;
+        CAN_DEV_PARA_INIT(dev_para);
         msgmng_p        = MsgMng::GetMsgMng();
     }
     void delete_dev_timer(void)
@@ -333,14 +330,9 @@ public:
     uint32_t shake_num;
 
 public:
-    Node_Shake(uint8_t id = 0, uint32_t num = 0)
+    Node_Shake(uint8_t id = 0, uint32_t num = 0):node_id(id),node_val(0),node_new_val(0),
+        shake_count(0),shake_num(num)
     {
-        node_id      = id;
-        node_val     = 0;
-        node_new_val = 0;
-        shake_count  = 0;
-
-        shake_num = num;
         zprintf3("Creat shake_num %d!\n", shake_num);
     }
     void node_init(uint8_t id, uint32_t num)
@@ -416,9 +408,9 @@ public:
 
 public:
     Dev_Node_Pro(Pt_Devs_ShareData *s_p = NULL, int mstimer = 100, uint8_t dev = 0, uint8_t child = 0)
-        : share_p(s_p), ndev_id(dev), nc_id(child)
+        : share_p(s_p), ndev_id(dev), nc_id(child),ms(mstimer)
     {
-        ms = mstimer;
+        ;
     }
     void dev_node_data_init(Pt_Devs_ShareData *s_p, int mstimer, uint8_t dev = 0, uint8_t child = 0)
     {
@@ -454,29 +446,25 @@ public:
     pthread_mutex_t send_mut;
 
 public:
-    TK_IO_Dev(ncan_protocol *pro, Pt_Devs_ShareData *data = NULL)
-        : PT_Dev_Virt(pro, data)
+    explicit TK_IO_Dev(ncan_protocol *pro, Pt_Devs_ShareData *data = NULL)
+        : PT_Dev_Virt(pro, data),dev_name(""),io_id(0),inbuf(NULL),iocandata(NULL)
     {
         memset(&attr, 0x00, sizeof(TK_IO_ATTR));
 
-        io_id = 0;
         inconfig.reset();
         pollmark.reset();
         outconfig.reset();
-        inbuf     = NULL;
-        iocandata = NULL;
         sem_init(&sendSem, 0, 1);
         pthread_mutex_init(&send_mut, NULL);
     }
-    TK_IO_Dev()
+    TK_IO_Dev():dev_name(""),io_id(0),inbuf(NULL),iocandata(NULL)
     {
         memset(&attr, 0x00, sizeof(TK_IO_ATTR));
-        io_id = 0;
+
         inconfig.reset();
         pollmark.reset();
         outconfig.reset();
-        inbuf     = NULL;
-        iocandata = NULL;
+
         sem_init(&sendSem, 0, 1);
         pthread_mutex_init(&send_mut, NULL);
     }
@@ -488,16 +476,20 @@ public:
         if(inbuf != NULL)
         {
             delete[] inbuf;
+            inbuf = NULL;
         }
         if(iocandata != NULL)
+        {
             delete[] iocandata;
+            iocandata = NULL;
+        }
         zprintf3("destory TK_IO_Dev!\n");
     }
 
-    int  pt_dev_init(void);
+    int  pt_dev_init(void) override;
     int  tk_io_reset_config(void);
     int  tk_io_config(CAN_DEV_INFO &dev, uint8_t devoff);
-    void data_send(soutDataUnit data);
+    void data_send(soutDataUnit data) override;
     void set_io_conf(uint8_t *buf);
     void set_out_node_val(int node, int val);
     void set_in_switch_node_val(int node, int val);

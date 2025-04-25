@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include "zmap.h"
 #include "tkcommon.h"
+#include "bsdev.h"
 
 #define CS_CAN_NUM 2
 
@@ -287,10 +288,9 @@ struct break_msg
     uint8_t direction;
     uint8_t location;
 };
-
-class cs_can
+class cs_can_info
 {
-  public:
+public:
     CSCANSTATE csstate;               // 1030协议初始化时的状态变迁
     uint8_t    csid;                  // cs id 0,1,2
     uint8_t    csdevtyle;             // cs dev style 0:100+cs 1:io
@@ -337,15 +337,31 @@ class cs_can
     uint8_t             cut_location_shake[3];
     uint8_t             heart_cs_error_count_g;
     uint8_t             heart_print_mark; //心跳打印标记
-    bitset< HEART_MAX > framark[255];
+
 
     ncan_protocol*     pro_p; //使用的can协议指针
     BS_Dev             bs100info;
     TK_IO_Dev*         tk100io; // tk100的io模块
     Pt_Devs_ShareData* data_p;
     REQDEVMK           csreqmark;
+public:
+    cs_can_info()
+    {
+        memset(this, 0, sizeof(*this));
+    }
+    ~cs_can_info()
+    {
+        zprintf3("cs_can_info destruct!\n");
+    }
+};
+
+class cs_can:public cs_can_info
+{
+  public:
+
 
     N_ConfigMap nconfig_map;
+    bitset< HEART_MAX > framark[255];
     N_CSZDMap   mac_cszd_have;
     N_DevMap    ndev_map;
 
@@ -355,7 +371,7 @@ class cs_can
     CANDATAFORM   pollFrame; // 1030 poll frame;
 
   public:
-    cs_can(ncan_protocol* pro, QString key, int branch_num, int reset_enable);
+    cs_can(ncan_protocol* pro, const QString & key, int branch_num, int reset_enable);
 
     int  add_default_dev(int zjnum, int csnum, int devid, int io_num, uint16_t type);
     int  get_dev_id(int order);

@@ -1,8 +1,8 @@
 #include "MsgObject.h"
 
-MsgObject::MsgObject(int key)
+MsgObject::MsgObject(int key):msg_key(key),msg_id(0)
 {
-    msg_key = key;
+    memset(&msg_data, 0x00, sizeof(msg_data));
 }
 
 MsgObject::~MsgObject()

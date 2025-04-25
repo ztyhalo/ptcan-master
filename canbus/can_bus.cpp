@@ -1,8 +1,8 @@
 #include "can_bus.h"
 #include <stdio.h>
 #include "timers.h"
-#include <sstream>
-#include "netprint.h"
+// #include <sstream>
+// #include "netprint.h"
 
 using namespace std;
 
@@ -93,7 +93,7 @@ CANDATAFORM lawdata_to_prodata(CanFrame * f)
 }
 
 
-int  call_write_back(CanDriver * pro, CANDATAFORM data)
+int  call_write_back(CanDriver * pro, const CANDATAFORM data)
 {
 
         pro->writeframe(data);
@@ -107,7 +107,7 @@ int  call_write_back(CanDriver * pro, CANDATAFORM data)
      struct sockaddr_can addr;
      struct ifreq ifr;
      char canname[6];
-     ostringstream canset;
+     // ostringstream canset;
 //     canset << "/opt/canbrateset.sh can" << registerdev << " " << brate<< endl;
 
 //     memset(canname, 0, sizeof(canname));
@@ -118,6 +118,7 @@ int  call_write_back(CanDriver * pro, CANDATAFORM data)
 //         printf("can brate set fail!\n");
 //         return -1;
 //     }
+     (void) brate;
 
      /* socketCAN连接 */
      CanFileP = socket(PF_CAN, SOCK_RAW, CAN_RAW);
@@ -160,7 +161,7 @@ int  call_write_back(CanDriver * pro, CANDATAFORM data)
      }
 
      e_poll_add(CanFileP);
-     canwrite.z_pthread_init(call_write_back, this);
+     canwrite.z_pthread_init(call_write_back, this, "canbus write");
 //     start();
 
      return 0;
@@ -172,10 +173,14 @@ void CanDriver::run()
 //    struct epoll_event events[get_epoll_size()];
     char buf[sizeof(CanFrame)];
     CanFrame * pfram = (CanFrame*)buf;
-    for (;  ; )
+    while (this->running)
     {
 //        memset(&events, 0, sizeof(events));
+#if (__GLIBC__ > 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 4)
+        if(wait_fd_change(-1) != -1)
+#else
         if(wait_fd_change(150) != -1)
+#endif
         {
 //            printf("receive can frame\n");
 //            nprintf("receive can data!\n");
@@ -250,7 +255,7 @@ int CanDriver::writeframe(const CANDATAFORM& f)
     return writeframe(prodata_to_lawdata(f));
 }
 
-int CanDriver::write_send_data(CANDATAFORM  & Msg)
+int CanDriver::write_send_data(const CANDATAFORM  & Msg)
 {
     int ret = -1;
     ret = writeframe(Msg);

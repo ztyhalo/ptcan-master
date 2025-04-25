@@ -7,7 +7,7 @@
 class msg:public MsgObject
 {
 public:
-    msg(int key):MsgObject(key)
+    explicit msg(int key):MsgObject(key)
     {
 
     }
