@@ -268,7 +268,7 @@ int CAN_DEV_APP::dev_normal_process(void)
 int Max_State_Pro::max_state_pro_init(QString key, int branch_num)
 {
     branch_num    = 3;
-    void *creat_p = share_state.creat_data(branch_num * MAX_STATE_SIZE, key);
+    void *creat_p = share_state.creat_data(branch_num * MAX_STATE_SIZE, key, ZQTShareMem::Create);
     zprintf3("create max share state size = %d\n", branch_num * MAX_STATE_SIZE);
     if(creat_p == NULL)
     {

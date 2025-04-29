@@ -62,9 +62,9 @@ typedef struct
 class CanDriver:public NCbk_Poll
 {
 public:
-    int      interval;
-    int      CanFileP;
-    void *   father_p;
+    int                 interval;
+    int                 CanFileP;
+    void *              father_p;
    pthread_mutex_t      send_mut;
 
     int (*rxcallback)(CanDriver * pro, CanFrame data);
@@ -85,7 +85,12 @@ public:
             shutdown(CanFileP, SHUT_RDWR);
             close(CanFileP);
             CanFileP = 0;
-
+        }
+        if(this->running)
+        {
+            this->running = 0;
+            stopPoll();
+            this->waitEnd();
         }
     }
 

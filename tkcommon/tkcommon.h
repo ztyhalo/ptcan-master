@@ -29,7 +29,7 @@ using namespace std;
 
 #define TK_IO_IN(nodeid) (8 * ((nodeid) / 4) + (3 - ((nodeid) % 4)) * 2)
 
-#define DEV_ID_MASK (~(0x000001f0))
+#define DEV_ID_MASK (~(0x000001f0U))
 
 #define SET_FRAM_DEV(FRAM, ID) ((FRAM)&DEV_ID_MASK) | ((uint32_t)(ID) << 4U)
 
@@ -308,7 +308,7 @@ public:
         data_p  = data;
     }
 
-    ~PT_Dev_Virt()
+    virtual ~PT_Dev_Virt()
     {
         delete_dev_timer();
         zprintf3("destory PT_Dev_Virt!\n");

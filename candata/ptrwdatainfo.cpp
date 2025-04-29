@@ -45,7 +45,7 @@ void Pt_ShareData::set_pt_out_data(sDataUnit * add, double val, int st)
 
 void PRO_ShreDATA::creat_pt_share(int size, QString keyid)
 {
-    qtread.pdata.creat_data(size, keyid);
+    qtread.pdata.creat_data(size, keyid, ZQTShareMem::Create);
 }
 
 void PRO_ShreDATA::dev_share_data_init(int devid, int childid,int innum)
@@ -71,8 +71,8 @@ void PRO_ShreDATA::set_share_data_value(int devid, int childid,int innode,double
 void Pt_Devs_ShareData::creat_pt_share(int size, QString keyid)
 {
     buf_size = size/sizeof(sDataUnit);
-    zprintf3(" pt share size = %d \r\n");
-    this->mapdata_p = creat_data(size, keyid);
+    zprintf3(" pt share size = %d \r\n",size);
+    this->mapdata_p = creat_data(size, keyid, ZQTShareMem::Create);
     add_p = this->mapdata_p;
     zprintf3(" pt share size = %d, add_p = %x\r\n", buf_size, add_p);
 }
@@ -133,7 +133,7 @@ void Pt_Devs_ShareData::set_out_ack_value(int devid, int childid,int innode,doub
 
 void IO_ShareData::creat_pt_share(int size, QString keyid)
 {
-    dev_map_init((char *)creat_data(size, keyid));
+    dev_map_init((char *)creat_data(size, keyid, ZQTShareMem::Create));
 }
 void IO_ShareData::reset_data_value(void)
 {

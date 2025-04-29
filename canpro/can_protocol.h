@@ -115,12 +115,13 @@ public:
     int                             errsize;
 
     FrameMap                        canidmap[2];
-    CANp_TIMER                      protm;       //can协议定时器
+    // CANp_TIMER                      protm;       //can协议定时器
     CANp_List                       prolist;
     CANPRODATA                      errbuf[CANBUS_TX_QSIZE];
     Z_Buf_T<CANDATAFORM, 8> pollfram;
 //    CANDATAFORM         pollfram[2];
     Get_Frame_Mapid     idfunc[2];
+    CANp_TIMER                      protm;       //can协议定时器 此定时器应放置在最后，第一个析构
 
 public:
     ncan_protocol(const string & n="",int can=0, int pro=0):name(n),canid(can),inter(0),candrip(NULL),

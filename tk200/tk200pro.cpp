@@ -52,10 +52,10 @@ void * tk200_reset_process(void * para)
     return NULL;
 }
 
-int TK200_State_Mem::tk200_state_data_init(QString key)
+int TK200_State_Mem::tk200_state_data_init(const QString & key)
 {
     int i = 0;
-    if(this->creat_data( 2*sizeof(CS_DataType)+ 3*sizeof(PT_Dev_State), key) == NULL)
+    if(this->creat_data( 2*sizeof(CS_DataType)+ 3*sizeof(PT_Dev_State), key, ZQTShareMem::Create) == NULL)
         return -1;
     for(i = 0; i < 2; i++){
         this->father->cs200[i].data = (CS_DataType *)(this->m_data+i*sizeof(CS_DataType));

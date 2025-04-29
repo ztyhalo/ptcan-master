@@ -207,7 +207,16 @@ public:
     }
     ~CAN_DEV_APP_INFO()
     {
-        ;
+        if(config_p != NULL)
+        {
+            delete[] config_p;
+            config_p = NULL;
+        }
+        if(iodata != NULL)
+        {
+            delete[] iodata;
+            iodata = NULL;
+        }
     }
 };
 
@@ -223,27 +232,11 @@ public:
     {
         framark.reset();
         msgmng_p  = MsgMng::GetMsgMng();
-        para.id = 0;          //设备从机号
-        para.innum = 0;       //输入个数
-        para.outnum = 0;      //输出个数
-        para.polltime = 0;    //查询周期,单位(ms)
-        para.type = 0;
-        para.enable = 0;
-        para.link_num = 0;
-        para.auto_reset = 0;
+        CAN_DEV_PARA_INIT(para);
     }
     ~CAN_DEV_APP()
     {
-        if(config_p != NULL)
-        {
-            delete[] config_p;
-            config_p = NULL;
-        }
-        if(iodata != NULL)
-        {
-            delete[] iodata;
-            iodata = NULL;
-        }
+        zprintf3("CAN_DEV_APP destruct!\n");
     }
 
     int set_config_head(void)
@@ -415,13 +408,13 @@ class Max_State_Pro : public Dev_Map_T< char >
 public:
     int                             cs_have;
     uint8_t                         tatol_dev;
+    int                             m_lockNm;
     QT_Share_MemT< Max_State_Data > share_state;
 
 public:
-    Max_State_Pro()
+    Max_State_Pro():cs_have(0),tatol_dev(0),m_lockNm(0)
     {
-        cs_have   = 0;
-        tatol_dev = 0;
+        ;
     }
     ~Max_State_Pro()
     {

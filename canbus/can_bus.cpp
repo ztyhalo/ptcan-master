@@ -175,29 +175,21 @@ void CanDriver::run()
     CanFrame * pfram = (CanFrame*)buf;
     while (this->running)
     {
-//        memset(&events, 0, sizeof(events));
+
 #if (__GLIBC__ > 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 4)
         if(wait_fd_change(-1) != -1)
 #else
         if(wait_fd_change(150) != -1)
 #endif
         {
-//            printf("receive can frame\n");
-//            nprintf("receive can data!\n");
+
            while(read(CanFileP, buf,sizeof(CanFrame)) == sizeof(CanFrame))
            {
-
-//               zprintf1("receive canid 0x%x\n", pfram->can_id&0x1FFFFFFF);
-//               canread.buf_write_data((CanFrame*)buf);
                this->rxcallback(this, *pfram);
 //               nprintf("receive 0x%x over\n", pfram->can_id&0x1FFFFFFF);
            }
 
         }
-//        else
-//        {
-//            nprintf("wati over!\n");
-//        }
     }
 }
 

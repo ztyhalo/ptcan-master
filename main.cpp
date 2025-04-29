@@ -35,17 +35,27 @@ void SignalFunc(int var)
     if (gCanInfo != NULL)
     {
         qDebug( ) << "delete gCanInfo";
-        delete gCanInfo;
-        qDebug( ) << "delete gCanInfo";
-        delete debug_p;
-        qDebug( ) << "delete gCanInfo";
-        delete gNetP;
+        delete gCanInfo;       
         gCanInfo = NULL;
     }
+    if(gNetP != NULL)
+    {
+        qDebug( ) << "delete gNetP";
+        delete gNetP;
+        gNetP = NULL;
+    }
+
+    if(debug_p != NULL)
+    {
+        qDebug( ) << "delete debug_p";
+        delete debug_p;
+        debug_p = NULL;
+    }
+    qDebug( ) << "delete end";
     exit(0);
 }
 
-O_Timer timr;
+// O_Timer timr; //不能在此实例定时器
 int     printf_time_callback(TEvent *tmpara)
 {
     (void)tmpara;

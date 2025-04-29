@@ -339,11 +339,12 @@ public:
     uint8_t             heart_print_mark; //心跳打印标记
 
 
-    ncan_protocol*     pro_p; //使用的can协议指针
-    BS_Dev             bs100info;
-    TK_IO_Dev*         tk100io; // tk100的io模块
-    Pt_Devs_ShareData* data_p;
-    REQDEVMK           csreqmark;
+    ncan_protocol*      pro_p; //使用的can协议指针
+
+    TK_IO_Dev*          tk100io; // tk100的io模块
+    Pt_Devs_ShareData*  data_p;
+    REQDEVMK            csreqmark;
+    CANDATAFORM         pollFrame; // 1030 poll frame;
 public:
     cs_can_info()
     {
@@ -359,8 +360,8 @@ class cs_can:public cs_can_info
 {
   public:
 
-
-    N_ConfigMap nconfig_map;
+    BS_Dev              bs100info;
+    N_ConfigMap         nconfig_map;
     bitset< HEART_MAX > framark[255];
     N_CSZDMap   mac_cszd_have;
     N_DevMap    ndev_map;
@@ -368,7 +369,7 @@ class cs_can:public cs_can_info
     sem_t         statechg; // can状态改变信号
     sem_t         reset_sem;
     Max_State_Pro state_info;
-    CANDATAFORM   pollFrame; // 1030 poll frame;
+
 
   public:
     cs_can(ncan_protocol* pro, const QString & key, int branch_num, int reset_enable);

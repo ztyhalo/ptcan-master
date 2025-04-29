@@ -87,8 +87,8 @@ int canpro_time_callback(CANp_TIME_ET* tmpara)
     CAN_DATA_LIST* retval   = NULL;
     int            err      = 0;
 
-    pthread_mutex_lock(&tmpara->father->prolist.list_mut);
-
+    // pthread_mutex_lock(&tmpara->father->prolist.list_mut);
+    tmpara->father->prolist.lock();
     //    qDebug("time mute enter is %d !",list_mut.__align);
     midpoint                = tmpara->father->prolist.rw_P;
     tmpara->father->errsize = 0;
@@ -137,7 +137,8 @@ int canpro_time_callback(CANp_TIME_ET* tmpara)
         }
     }
 
-    err = pthread_mutex_unlock(&tmpara->father->prolist.list_mut);
+    // err = pthread_mutex_unlock(&tmpara->father->prolist.list_mut);
+    err = tmpara->father->prolist.unlock();
     for (int i = 0; i < tmpara->father->errsize; i++)
     {
         if (tmpara->father->errbuf[i].canhead.overcallbacfun != NULL)

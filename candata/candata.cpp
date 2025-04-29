@@ -116,7 +116,7 @@ int Can_Data::can_read_xml(const QString  name, const QString  name1, const QStr
     zprintf3("key: io out key = %d\r\n", devkey.ctrl_key);
     ptread.creat_pt_share((d_info.TotalInCnt + d_info.TotalOutCnt) * sizeof(sDataUnit), ckey);
     QString qtkey = QString("%1").arg(devkey.ctrl_key);
-    semwrite.pdata.creat_sem_data(CON_OUT_BUF_SIZE * sizeof(soutDataUnit), devkey.sem_key, qtkey);
+    semwrite.pdata.creat_sem_data(CON_OUT_BUF_SIZE * sizeof(soutDataUnit), devkey.sem_key, qtkey, ZQTShareMem::Create);
     ptread.dri_id = devkey.driverid;
 
     if(readxml.dri_info.protocal == "tk100" || readxml.dri_info.protocal == "1030")

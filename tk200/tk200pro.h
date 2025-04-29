@@ -57,7 +57,7 @@ public:
       ~TK200_State_Mem(){
           zprintf3("destory TK200_State_Mem!\n");
       }
-      int tk200_state_data_init(QString key);
+      int tk200_state_data_init(const QString & key);
 };
 
 
