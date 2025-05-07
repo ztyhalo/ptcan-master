@@ -59,7 +59,7 @@ linux-gnueabi-oe-g++ {
 
 }
 
-COMMLIB_PATH = $$PWD/../public/commonli
+COMMLIB_PATH = $$PWD/../public/zcommonlib
 LIBS +=  -L$$QBUILD -lzcommonlib
 
 # DEFINES += ARM_PLATFORM
