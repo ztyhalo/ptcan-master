@@ -17,7 +17,8 @@
 
 
 #include "zprint.h"
-#include "pro_data.h"
+#include "zbufT.h"
+// #include "pro_data.h"
 
 
 using namespace std;

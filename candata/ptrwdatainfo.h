@@ -13,16 +13,9 @@
 #define __PTRWDATAINFO_H__
 
 
-
-// #include "can_protocol.h"
-// #include "bitset"
-// #include "reflect.h"
-// #include "driver.h"
-// #include "ptxml.h"
 #include "ptdataapp.h"
 
 
-#define FATHER_DEV_MAX      256
 using namespace std;
 
 
@@ -31,60 +24,6 @@ enum
     OUT_NODE_IDLE = 0x00,
     OUT_NODE_USING
 };
-
-typedef struct
-{
-    int num;
-    int parentid;
-    int childid;
-    int pointid;
-    double value;
-    int  state;
-}sDataUnit;     //主动上报共享内存
-
-class cDataUnit
-{
-public:
-    int num;
-    int parentid;
-    int childid;
-    int pointid;
-    double value;
-    int  state;
-public:
-    cDataUnit(int  mark, int devid, int cid, int node, double val, int  st):
-        num(mark),parentid(devid), childid(cid),pointid(node),value(val), state(st)
-    {
-        ;
-    }
-    cDataUnit()
-    {
-        memset(this, 0x00, sizeof(cDataUnit));
-    }
-    void set_all(const cDataUnit & val)
-    {
-        *this = val;
-    }
-    void set_val(double val)
-    {
-        value = val;
-    }
-    void set_val_state(double val, int st)
-    {
-        value = val;
-        state = st;
-    }
-};
-
-typedef struct
-{
-    int num;
-    int parentid;
-    int childid;
-    int pointid;
-    double value;
-    int  state;
-}soutDataUnit;
 
 
 class Pt_ShareData:public QTShareDataT<sDataUnit>
@@ -150,7 +89,7 @@ public:
     }
 };
 
-class IO_ShareData:public QT_Share_MemT<cDataUnit>,public Dev_Map_T<cDataUnit>
+class IO_ShareData:public QTShareDataT<cDataUnit>,public Dev_Map_T<cDataUnit>
 {
 public:
     int         dri_id;
@@ -187,9 +126,8 @@ class PRO_DATA_INFO_T
 {
 public:
 
-    Pt_Devs_ShareData               ptread;
-//     IO_ShareData               ptread;
-    SemS_QtDATAS_T<soutDataUnit, F>    semwrite;
+    Pt_Devs_ShareData                   ptread;
+    SemS_QtDATAS_T<soutDataUnit, F>     semwrite;
 public:
     PRO_DATA_INFO_T(int dri = 1){
         ptread.dri_id = dri;

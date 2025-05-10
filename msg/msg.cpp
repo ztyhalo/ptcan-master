@@ -24,7 +24,7 @@ bool msg::SendMsg(sMsgUnit *pdata,uint16_t size)
     temp[9] = (uint8_t)(pdata->type&0x00ff);
     memcpy(&temp[10],pdata->data,size);
 
-    ret = send_object(temp,size+MSG_UNIT_HEAD_LEN);
+    ret = send_object(temp, (int)(size+MSG_UNIT_HEAD_LEN));
     return ret;
 }
 

@@ -39,13 +39,13 @@ class TK200_State_Pro
 {
 public:
     Max_State_Data                    dev_state;
-    QT_Share_MemT<TK200_State_Data>   share_state;
+    QTShareDataT<TK200_State_Data>   share_state;
 
 };
 
 #define TK200_STATE_BUF_SIZE (sizeof(TK200_State_Data))
 
-class TK200_State_Mem:public QT_Share_MemT<char>
+class TK200_State_Mem:public QTShareDataT<char>
 {
 public:
    TK200_Pro * father;

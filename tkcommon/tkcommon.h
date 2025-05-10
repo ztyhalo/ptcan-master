@@ -203,7 +203,7 @@ public:
     }
 };
 
-// typedef  QT_Share_MemT<char> TK200_State_Mem;
+// typedef  QTShareDataT<char> TK200_State_Mem;
 class TK200_State_Mem;
 
 class PT_Dev_State
