@@ -36,27 +36,49 @@ using namespace std;
 #define TK100INPUT_BUF_SIZE 32
 #define TK_IO_SATET_N       0x03
 
+
 typedef enum
 {
-    DEV_256_IO_PHONE = 0X00,
-    DEV_256_MODBUS_LOCK,
-    DEV_256_PHONE,
-    DEV_256_LOCK,
+    NO_INSULATE_SWITCH = 0x01,
+    INSULATE_SWITCH,
+    CS_DEV,
     LOW_MACH,
-    TK236_IOModule_Salve,
     TERMINAL,
+    OPERATER,
     IN_DEV,
-    TK100_CSModule = 0x08,
-    DEV_256_RELAY  = 0x09,
-    TK200_IOModule,
+    OUT_DEV,
+    TK100_CSModule = 0x09,
+    TK100_IOModule_Salve,
     TK100_BS_Module,
     TK100_IOModule_IO,
     TK200_CSModule,
     TK200_LOWModule,
-    CS_DEV,
+    TK200_IOModule,
     TK200_INModule,
     CS_DEVSTY_MAX
-} CSDEVSTYLE;
+}CSDEVSTYLE;
+
+typedef enum
+{
+    DEV_256_IO_PHONE = 0x00,
+    DEV_256_MODBUS_LOCK,
+    DEV_256_PHONE,
+    DEV_256_LOCK,
+    LOW_256_MACH,
+    TK236_IOModule_Salve,
+    TERMINAL_256,
+    IN_256_DEV,
+    TK100_256_CSModule = 0x08,
+    DEV_256_RELAY  = 0x09,
+    TK200_256_IOModule,
+    TK100_256_BS_Module,
+    TK100_256_IOModule_IO,
+    TK200_256_CSModule,
+    TK200_256_LOWModule,
+    CS_256_DEV,
+    TK200_256_INModule,
+    CS_256_DEVSTY_MAX
+} CS256DEVSTYLE;
 enum
 {
     TK_IO_BUG = 0,

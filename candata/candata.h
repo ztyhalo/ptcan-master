@@ -21,6 +21,7 @@
 #include "candatainfo.h"
 #include "1030pro.h"
 #include "tk200pro.h"
+#include "256app/256pro.h"
 #include "zprint.h"
 
 
@@ -45,10 +46,11 @@ public:
     ncan_protocol         *canpro;
     //    Pro_XML_Process      conf_func;
     cs_can    *cs1030;
+    cs_can256 * cs256;
     TK200_Pro *tk200;
 
 public:
-    Can_Data( ):canid(0),canbus(NULL),canpro(NULL),cs1030(NULL),tk200(NULL)
+    Can_Data( ):canid(0),canbus(NULL),canpro(NULL),cs1030(NULL),cs256(NULL),tk200(NULL)
     {
         memset(&d_info, 0x00, sizeof(d_info));
     }
@@ -60,6 +62,13 @@ public:
             delete cs1030;
             zprintf1("destory 1030 over!\n");
             cs1030 = NULL;
+        }
+        if (cs256 != NULL)
+        {
+            zprintf1("desotry cs256!\n");
+            delete cs256;
+            zprintf1("destory cs256 over!\n");
+            cs256 = NULL;
         }
 
         if (tk200 != NULL)
@@ -85,6 +94,7 @@ public:
     }
     void creat_can_bus_pro(void);
     int  can_read_xml(const QString  name, const QString  name1, const QString  name2);
+    int  can_read_xml(const QString  name);
     int  can_app_init(void);
     int  get_innode_info(int dev, int child, int innode, can_inode_info &val);
 };

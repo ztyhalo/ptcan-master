@@ -121,6 +121,8 @@ INCLUDEPATH += .\
 
 
 SOURCES += main.cpp \
+    256app/256common.cpp \
+    256app/256pro.cpp \
     canbus/can_bus.cpp \
     canpro/can_protocol.cpp \
     msg/driver.cpp \
@@ -132,6 +134,7 @@ SOURCES += main.cpp \
     1030app/1030common.cpp \
     modbus/modbuscrc.cpp \
     candata/ptrwdatainfo.cpp \
+    ptcommon/ptdevcommon.cpp \
     tk200/tk200pro.cpp \
     tk200/tk200cs.cpp \
     tkcommon/tkcommon.cpp \
@@ -139,9 +142,12 @@ SOURCES += main.cpp \
 
 
 HEADERS += \
+    256app/256common.h \
+    256app/256pro.h \
     canbus/can_bus.h \
     canbus/can_relate.h \
     canpro/can_protocol.h \
+    ptcommon/ptdevcommon.h \
     ptxml/ptxml.h \
     msg/define.h \
     msg/driver.h \

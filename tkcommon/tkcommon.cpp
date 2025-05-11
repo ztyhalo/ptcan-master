@@ -224,7 +224,7 @@ void TK_IO_Dev::set_io_conf(uint8_t * buf)
 int io_poll_callback(CANp_TIME_ET * poll)
 {
 
-   poll->father->can_protocol_send(*(CANDATAFORM *)poll->para);
+    poll->father->can_protocol_send(*static_cast<CANDATAFORM *>(poll->para));
 
    return 0;
 

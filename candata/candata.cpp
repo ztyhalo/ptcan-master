@@ -69,6 +69,125 @@ void Can_Data::creat_can_bus_pro(void)
     canpro = new ncan_protocol();
 }
 
+
+int Can_Data::can_read_xml(QString name)
+{
+
+    readxml.driver_read_xml(name);
+
+    memset(&d_info,0x00, sizeof(d_info));
+
+    for(int i = 0; i < readxml.dev.size(); i++)
+    {
+        d_info.TotalInCnt += readxml.dev[i].para.innum;
+        d_info.TotalOutCnt += readxml.dev[i].para.outnum;
+        for(int j = 0; j < readxml.dev[i].child.size(); j++)
+        {
+            d_info.TotalInCnt += readxml.dev[i].child[j].para.innum;
+            d_info.TotalOutCnt += readxml.dev[i].child[j].para.outnum;
+        }
+    }
+    zprintf3("d_info.TotalInCnt = %d,d_info.TotalOutCnt = %d\n\n",d_info.TotalInCnt,d_info.TotalOutCnt);
+    if(readxml.dri_info.protocal == "1030"){
+        d_info.TotalStateCnt = MAX_STATE_BUF_SIZE;
+    } else if(readxml.dri_info.protocal == "tk200"){
+        d_info.TotalStateCnt = TK200_STATE_BUF_SIZE;
+    }
+    canid = readxml.dri_info.canid;
+
+    zprintf3("state is %d %d\n",d_info.TotalStateCnt, MAX_STATE_BUF_SIZE);
+    QString ckey = QString("%1").arg(devkey.data_key);
+    zprintf3("in is %d\n",d_info.TotalInCnt);
+    ptread.creat_pt_share((d_info.TotalInCnt + d_info.TotalOutCnt)*sizeof(sDataUnit), ckey);
+    QString qtkey = QString("%1").arg(devkey.ctrl_key);
+    zprintf3("out is %d\n",d_info.TotalOutCnt);
+
+    semwrite.pdata.creat_sem_data(CON_OUT_BUF_SIZE * sizeof(soutDataUnit), devkey.sem_key, qtkey, ZQTShareMem::Create);
+    ptread.dri_id = devkey.driverid;
+
+
+    if(readxml.dri_info.protocal == "tk100" || readxml.dri_info.protocal == "1030")
+    {
+        cs1030 = new cs_can(canpro, QString("%1").arg(devkey.state_key), readxml.dri_info.auto_reset);
+        if(readxml.dri_info.protocal == "tk100")
+            cs1030->tk100io = new TK_IO_Dev(canpro, &ptread);
+        cs1030->data_p = &ptread;
+        cs1030->state_info.set_config_Slave_IO_Set(0, readxml.dev.size() ? readxml.dev.size() - 1 : readxml.dev.size());
+        cs1030->state_info.set_config_Auto_Reset(0, readxml.dri_info.auto_reset);
+    }
+    else if(readxml.dri_info.protocal == "tk200")
+    {
+        tk200 = new TK200_Pro(canpro, &ptread, QString("%1").arg(devkey.state_key));
+    }
+    else
+    {
+        ;
+    }
+
+    MsgMng  *pMsgMng = MsgMng::GetMsgMng();
+
+    if(!pMsgMng->Init(devkey.recvmsg_key, devkey.sendmsg_key, this))
+    {
+        zprintf1("DriverTest msg init fail!\n");
+    }
+    else
+    {
+        zprintf1("DriverTest msg init over!\n");
+    }
+    for(int i = 0; i < readxml.dev.size(); i++)
+    {
+        can_dev_para middevpara;
+        ptread.dev_share_data_init(i, 0, readxml.dev[i].para.innum, readxml.dev[i].para.outnum);
+        middevpara = readxml.dev[i].para;
+        dev.push_back(middevpara);
+        switch (middevpara.type)
+        {
+        case TK100_IOModule_IO:
+        {
+            zprintf3("tk100 io config\n");
+            cs1030->tk100io->tk_io_config(readxml.dev[i],i);
+        }
+        break;
+        case TK100_CSModule:
+        case TK100_IOModule_Salve:
+        case CS_DEV:             //添加cs设备
+        {
+            cs1030->pt_configdata_set(readxml.dev[i], i);
+        }
+        break;
+        case TK100_BS_Module:
+        {
+            cs1030->bs100info.dev_off = i;
+        }
+        break;
+        case TK200_CSModule:
+        {
+            if(readxml.dev[i].para.id == 2 || readxml.dev[i].para.id == 3)
+            {
+                //                    if(readxml.dev[i].para.enable)
+                tk200->cs200[readxml.dev[i].para.id -2].tk200_cs_config(readxml.dev[i],i);
+            }
+        }
+        break;
+        case TK200_IOModule:
+        case TK200_INModule:
+        {
+            //                if(readxml.dev[i].para.enable)
+            {
+                if(readxml.dev[i].para.id == 5 || readxml.dev[i].para.id == 6
+                    || readxml.dev[i].para.id == 7)
+                    tk200->io200[readxml.dev[i].para.id -5].tk_io_config(readxml.dev[i],i);
+            }
+        }
+        break;
+        default:
+            zprintf1("dev type no exit!\n");
+            break;
+        }
+    }
+
+    return true;
+}
 int Can_Data::can_read_xml(const QString  name, const QString  name1, const QString  name2)
 {
     int zjcs[3][2]   = { {0, 0}, {1, 2}, {1, 3 }};
@@ -121,10 +240,10 @@ int Can_Data::can_read_xml(const QString  name, const QString  name1, const QStr
 
     if(readxml.dri_info.protocal == "tk100" || readxml.dri_info.protocal == "1030")
     {
-        cs1030 = new cs_can(canpro, QString("%1").arg(devkey.state_key), (readxml.dev.size() ? readxml.dev.size() : 1), readxml.dri_info.auto_reset);
+        cs256 = new cs_can256(canpro, QString("%1").arg(devkey.state_key), (readxml.dev.size() ? readxml.dev.size() : 1), readxml.dri_info.auto_reset);
         if(readxml.dri_info.protocal == "tk100")
-            cs1030->tk100io = new TK_IO_Dev(canpro, &ptread);
-        cs1030->data_p = &ptread;
+            cs256->tk100io = new TK_IO_Dev(canpro, &ptread);
+        cs256->data_p = &ptread;
     }
     else if(readxml.dri_info.protocal == "tk200")
     {
@@ -145,9 +264,9 @@ int Can_Data::can_read_xml(const QString  name, const QString  name1, const QStr
     {
         zprintf3("DriverTest msg init over!\n");
     }
-    cs1030->cf_cs_num[0] = 0;
-    cs1030->cf_cs_num[1] = 0;
-    cs1030->cf_cs_num[2] = 0;
+    cs256->cf_cs_num[0] = 0;
+    cs256->cf_cs_num[1] = 0;
+    cs256->cf_cs_num[2] = 0;
     for(uint8_t i = 0; i < readxml.dev.size(); i++)
     {
         for(uint8_t j = 0; j < readxml.dev[i].child.size(); j++)
@@ -161,11 +280,11 @@ int Can_Data::can_read_xml(const QString  name, const QString  name1, const QStr
                 case TK100_IOModule_IO:
                 {
                     zprintf3("tk100 io config\n");
-                    cs1030->tk100io->tk_io_config(readxml.dev[i].child[j], i);
+                    cs256->tk100io->tk_io_config(readxml.dev[i].child[j], i);
                 }
                 break;
                 case CS_DEV:    //添加cs设备
-                    cs1030->cf_cs_num[i]++;
+                    cs256->cf_cs_num[i]++;
                 case DEV_256_IO_PHONE:
                 case DEV_256_MODBUS_LOCK:
                 case DEV_256_PHONE:
@@ -175,12 +294,12 @@ int Can_Data::can_read_xml(const QString  name, const QString  name1, const QStr
                 case TK100_CSModule:
                 case TK200_CSModule:
                 {
-                    cs1030->pt_configdata_set(readxml.dev[i].child[j], i, j);
+                    cs256->pt_configdata_set(readxml.dev[i].child[j], i, j);
                 }
                 break;
                 case TK100_BS_Module:
                 {
-                    cs1030->bs100info.dev_off = i;
+                    cs256->bs100info.dev_off = i;
                 }
                 break;
                 case TK200_IOModule:
@@ -205,17 +324,17 @@ int Can_Data::can_read_xml(const QString  name, const QString  name1, const QStr
 
     for(int i = 0; i < 3; i++)
     {
-        cs1030->add_mac_cszd_branch(zjcs[i][0], zjcs[i][1]);
+        cs256->add_mac_cszd_branch(zjcs[i][0], zjcs[i][1]);
     }
 
-    cs1030->line_num = 1;
+    cs256->line_num = 1;
     if(file1.exists())
     {
-        cs1030->line_num |= 0x02;
+        cs256->line_num |= 0x02;
     }
     if(file2.exists())
     {
-        cs1030->line_num |= 0x04;
+        cs256->line_num |= 0x04;
     }
     return true;
 }
@@ -228,17 +347,17 @@ int Can_Data::can_app_init(void)
     canpro->start();
     canbus->start("can bus");
 
-    if(cs1030 != NULL)
+    if(cs256 != NULL)
     {
-        cs1030->cs_config_init();
-        if(cs1030->tk100io != NULL)
+        cs256->cs_config_init();
+        if(cs256->tk100io != NULL)
         {
-            cs1030->tk100io->pt_dev_init();
-            semwrite.pdata.z_pthread_init(tk100_output, cs1030->tk100io);
+            cs256->tk100io->pt_dev_init();
+            semwrite.pdata.z_pthread_init(tk100_output, cs256->tk100io);
         }
         else
         {
-            semwrite.pdata.z_pthread_init(dev1030_output, cs1030, "1030 output");
+            semwrite.pdata.z_pthread_init(dev256_output, cs256, "256 output");
         }
     }
 
