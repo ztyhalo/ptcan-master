@@ -71,7 +71,7 @@ int cs_can256::pt_configdata_set(CAN_DEV_INFO &dev, uint8_t cs_num, uint8_t dev_
     mid.stateinfo = &state_info;
 
     // TODO: del cs_have
-    if (dev_off == 0 && dev.para.type == CS_DEV)
+    if (dev_off == 0 && dev.para.type == CS_256_DEV)
     {
         state_info.set_cs_have(1);
     }
@@ -101,7 +101,7 @@ int cs_can256::pt_configdata_set(CAN_DEV_INFO &dev, uint16_t dev_off)
     mid.stateinfo = &state_info;
 
     // TODO: del cs_have
-    if (dev_off == 0 && dev.para.type == CS_DEV)
+    if (dev_off == 0 && dev.para.type == CS_256_DEV)
     {
         state_info.set_cs_have(1);
     }
@@ -693,7 +693,7 @@ static int mac_inquire_ack_proc(void *pro1030, CANDATAFORM rxmeg)
                 csrxcanp->ndev_map.insert(pair< int, can_dev_para >(csrxcanp->csmacorder, temppara));
                 devid = csrxcanp->ndev_map.val(csrxcanp->csmacorder).id;
             }
-            if ((devtype == CS_DEV) || (devtype == TK236_IOModule_Salve) || (devtype == DEV_256_MODBUS_LOCK) || (devtype == DEV_256_IO_PHONE) || (devtype == TERMINAL))
+            if ((devtype == CS_256_DEV) || (devtype == TK236_IOModule_Salve) || (devtype == DEV_256_MODBUS_LOCK) || (devtype == DEV_256_IO_PHONE) || (devtype == TERMINAL_256))
             {
                 csrxcanp->csioorder++;
                 if (get_zj_index)
@@ -783,7 +783,7 @@ static int mac_inquire_ack_proc(void *pro1030, CANDATAFORM rxmeg)
                                         return -1;
                                     }
                                     break;
-                                case TERMINAL:
+                                case TERMINAL_256:
                                     csrxcanp->nconfig_map.val(config_devid).para.type = devtype;
                                     break;
                                 default:
@@ -827,7 +827,7 @@ static int mac_inquire_ack_proc(void *pro1030, CANDATAFORM rxmeg)
             csrxcanp->csmacorder++;
             csrxcanp->cszjorder[branch]++;
             csrxcanp->set_dev_status(csrxcanp->csmacorder, DEV_ON_LINE);
-            if (devtype == CS_DEV)
+            if (devtype == CS_256_DEV)
             {
                 int     cs_num  = 0;
                 uint8_t tmp_key = get_cs_index + (get_zj_index << 2);
@@ -835,7 +835,7 @@ static int mac_inquire_ack_proc(void *pro1030, CANDATAFORM rxmeg)
                 cs_num               = csrxcanp->mac_cszd_have.val(0).mac_cs_have + csrxcanp->mac_cszd_have.val(6).mac_cs_have + csrxcanp->mac_cszd_have.val(7).mac_cs_have;
                 csrxcanp->mac_cs_num = cs_num;
             }
-            else if (devtype == TERMINAL)
+            else if (devtype == TERMINAL_256)
             {
                 int     zd_num                                         = 0;
                 uint8_t tmp_key                                        = get_cs_index + (get_zj_index << 2);
@@ -863,7 +863,7 @@ static int mac_inquire_ack_proc(void *pro1030, CANDATAFORM rxmeg)
         rxmeg.Data[5]    = 0;
         uint16_t devtype = 0;
         memcpy(&devtype, &rxmeg.Data[4], 2);
-        if (devtype == TERMINAL)
+        if (devtype == TERMINAL_256)
         {
             if (csrxcanp->mac_cszd_have.val(0).mac_terminal_have == 0)
             {
@@ -1071,7 +1071,7 @@ static void read_reg_entry(cs_can256 *csrxcanp, CANDATAFORM rxmeg)
                                   rxmidframe.canframework.devaddr_8, sourceid))
     {
         uint16_t devtyle = csrxcanp->ndev_map.val(sourceid).type;
-        if (devtyle == CS_DEV)
+        if (devtyle == CS_256_DEV)
         {
             return;
         }
@@ -1425,7 +1425,7 @@ static int auto_report_frameproc(void *pro1030, CANDATAFORM rxmeg)
 
     rxdata.rxinval = rxmeg.Data[2];
 
-    if (rxmeg.Data[0] == DEV_256_PHONE || rxmeg.Data[0] == DEV_256_LOCK || rxmeg.Data[0] == CS_DEV || rxmeg.Data[0] == DEV_256_RELAY)
+    if (rxmeg.Data[0] == DEV_256_PHONE || rxmeg.Data[0] == DEV_256_LOCK || rxmeg.Data[0] == CS_256_DEV || rxmeg.Data[0] == DEV_256_RELAY)
     {
         dev_function |= 1 << BS_FUNCTION;
     }
@@ -1445,7 +1445,7 @@ static int auto_report_frameproc(void *pro1030, CANDATAFORM rxmeg)
 
     if ((dev_function >> BS_FUNCTION & 0x01) == 0x01 && rxdata.rxinattr.innum5 == 0x1f)
     {
-        if (csrxcanp->nconfig_map.val(csrxcanp->slave_io_num[branch] - 1).para.type == TERMINAL)
+        if (csrxcanp->nconfig_map.val(csrxcanp->slave_io_num[branch] - 1).para.type == TERMINAL_256)
         {
             csrxcanp->data_p->set_share_data_value(csrxcanp->slave_io_num[branch] - 1,
                                                    rxmidframe.canframework.zjaddr_3 ? rxmidframe.canframework.csaddr_2 - 1 : 0,
@@ -1614,9 +1614,9 @@ static int dev_break_check_callback(void *pro1030, CANDATAFORM rxmeg)
             lock_status = 1;
         }
         csrxcanp->state_info.set_bs_state(branch, get_dev_addr - 1, lock_status);
-        if ((devtype == CS_DEV) || (devtype == TK236_IOModule_Salve) || (devtype == DEV_256_MODBUS_LOCK) || (devtype == DEV_256_IO_PHONE) || (devtype == TERMINAL))
+        if ((devtype == CS_256_DEV) || (devtype == TK236_IOModule_Salve) || (devtype == DEV_256_MODBUS_LOCK) || (devtype == DEV_256_IO_PHONE) || (devtype == TERMINAL_256))
         {
-            if (devtype != TERMINAL)
+            if (devtype != TERMINAL_256)
             {
                 slave_io_num_tmp = ++csrxcanp->slave_io_num_temp[branch];
                 csrxcanp->csioorder_temp++;
@@ -1627,7 +1627,7 @@ static int dev_break_check_callback(void *pro1030, CANDATAFORM rxmeg)
                 }
             }
         }
-        if (devtype == CS_DEV)
+        if (devtype == CS_256_DEV)
         {
             int     cs_num  = 0;
             uint8_t tmp_key = get_cs_index + (get_zj_index << 2);
@@ -1848,10 +1848,10 @@ static void com_heart_nextprocess(CANPRODATA *rxprodata, cs_can256 *csrxcanp, ui
                 }
             }
             break;
-        case TERMINAL:
+        case TERMINAL_256:
             csrxcanp->state_info.set_termal_vol(branch, rxmeg.Data[2]);
             break;
-        case CS_DEV:
+        case CS_256_DEV:
         {
             csrxcanp->heart_cs_error_count_g = 0;
             tbyte_swap((uint16_t *)rxmeg.Data, rxmeg.DLC);
@@ -1995,11 +1995,11 @@ static void heart_nonextprocess(CANPRODATA *rxprodata, cs_can256 *csrxcanp, uint
             csrxcanp->is_have_config_dev(devnum + 1, config_id);
             csrxcanp->nconfig_map.val(config_id).set_share_data( );
             break;
-        case TERMINAL:
+        case TERMINAL_256:
             for (uint8_t i = 0; i < get_dev_addr; i++)
             {
                 devtype = csrxcanp->ndev_map.val(i).type;
-                if ((devtype == DEV_256_PHONE) || (devtype == DEV_256_LOCK) || (devtype == DEV_256_IO_PHONE) || (devtype == DEV_256_MODBUS_LOCK) || (devtype == CS_DEV) || (devtype == DEV_256_RELAY))
+                if ((devtype == DEV_256_PHONE) || (devtype == DEV_256_LOCK) || (devtype == DEV_256_IO_PHONE) || (devtype == DEV_256_MODBUS_LOCK) || (devtype == CS_256_DEV) || (devtype == DEV_256_RELAY))
                 {
                     bs_num++;
                 }
@@ -2016,7 +2016,7 @@ static void heart_nonextprocess(CANPRODATA *rxprodata, cs_can256 *csrxcanp, uint
             csrxcanp->state_info.set_slaveio_num(0, io_num);
             heart_frame_over(rxprodata, csrxcanp);
             break;
-        case CS_DEV:
+        case CS_256_DEV:
             csrxcanp->heart_cs_error_count_g = 0;
             break;
 
@@ -2179,7 +2179,7 @@ static int max_heartframe_overtimeproc(void *pro1030, CANDATAFORM overmeg)
             // zprintf1("heart i:%d,id:%d,type:%d\r\n", i, csrxcanp->ndev_map.val(i).id,
             // csrxcanp->ndev_map.val(i).type);
             devtype = csrxcanp->ndev_map.val(i).type;
-            if ((devtype == DEV_256_PHONE) || (devtype == DEV_256_LOCK) || (devtype == DEV_256_IO_PHONE) || (devtype == DEV_256_MODBUS_LOCK) || (devtype == CS_DEV) || (devtype == DEV_256_RELAY))
+            if ((devtype == DEV_256_PHONE) || (devtype == DEV_256_LOCK) || (devtype == DEV_256_IO_PHONE) || (devtype == DEV_256_MODBUS_LOCK) || (devtype == CS_256_DEV) || (devtype == DEV_256_RELAY))
             {
                 bs_num++;
             }
@@ -2286,7 +2286,7 @@ static int slavereset_frame_proc(void *pro1030, CANDATAFORM rxmeg)
     uint16_t devtype = 0;
     memcpy(&devtype, &rxmeg.Data[4], 2);
 #ifdef END_NO_RESET
-    if (devtype != TERMINAL)
+    if (devtype != TERMINAL_256)
     {
 #endif
         if (csrxcanp->reset_state == cs_can256_info::DEV_RESET_OVER)
@@ -2418,7 +2418,7 @@ uint8_t cs_can256::get_bs_mac_num(uint8_t branch)
     uint8_t bsnum = 0;
     for (uint8_t i = (branch ? cszjorder[branch - 1] : branch); i < cszjorder[branch]; i++)
     {
-        if ((ndev_map.val(i).type == DEV_256_PHONE) || (ndev_map.val(i).type == DEV_256_LOCK) || (ndev_map.val(i).type == DEV_256_IO_PHONE) || (ndev_map.val(i).type == DEV_256_MODBUS_LOCK) || (ndev_map.val(i).type == CS_DEV) || (ndev_map.val(i).type == DEV_256_RELAY))
+        if ((ndev_map.val(i).type == DEV_256_PHONE) || (ndev_map.val(i).type == DEV_256_LOCK) || (ndev_map.val(i).type == DEV_256_IO_PHONE) || (ndev_map.val(i).type == DEV_256_MODBUS_LOCK) || (ndev_map.val(i).type == CS_256_DEV) || (ndev_map.val(i).type == DEV_256_RELAY))
         {
             bsnum++;
         }
@@ -3280,7 +3280,7 @@ int cs_can256::cs_init(void)
     for (uint32_t i = 0; i < (uint32_t)slave_io_num[0] + slave_io_num[1] + slave_io_num[2]; i++)
     {
         dev_type = get_dev_type(i);
-        if (csdevtyle == 0 && dev_type != TERMINAL)
+        if (csdevtyle == 0 && dev_type != TERMINAL_256)
         {
             if (nconfig_map.val(i).cscrc != nconfig_map.val(i).config_p[3])
             {
@@ -3426,7 +3426,7 @@ int dev256_output(void *midp, soutDataUnit val)
             zprintf1("max cs reseting!\n");
             return -2;
         }
-        if (pro->get_dev_type(order) == CS_DEV || pro->get_dev_type(order) == TERMINAL)
+        if (pro->get_dev_type(order) == CS_256_DEV || pro->get_dev_type(order) == TERMINAL_256)
         {
             zprintf1("max cs no output!\n");
             return -2;

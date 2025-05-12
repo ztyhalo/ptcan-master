@@ -110,28 +110,6 @@ public:
         DEV_RESET_OVER,
     };
 
-    typedef enum
-    {
-        DEV_256_IO_PHONE = 0X00,
-        DEV_256_MODBUS_LOCK,
-        DEV_256_PHONE,
-        DEV_256_LOCK,
-        LOW_MACH,
-        TK236_IOModule_Salve,
-        TERMINAL,
-        IN_DEV,
-        TK100_CSModule = 0x08,
-        DEV_256_RELAY  = 0x09,
-        TK200_IOModule,
-        TK100_BS_Module,
-        TK100_IOModule_IO,
-        TK200_CSModule,
-        TK200_LOWModule,
-        CS_DEV,
-        TK200_INModule,
-        CS_DEVSTY_MAX
-    } CSDEVSTYLE;
-
 public:
     CSCANSTATE csstate;               // 1030协议初始化时的状态变迁
     uint8_t    csid;                  // cs id 0,1,2

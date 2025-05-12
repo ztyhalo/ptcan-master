@@ -121,27 +121,6 @@ enum {
 class cs_can_info
 {
 public:
-    typedef enum
-    {
-        NO_INSULATE_SWITCH = 0x01,
-        INSULATE_SWITCH,
-        CS_DEV,
-        LOW_MACH,
-        TERMINAL,
-        OPERATER,
-        IN_DEV,
-        OUT_DEV,
-        TK100_CSModule = 0x09,
-        TK100_IOModule_Salve,
-        TK100_BS_Module,
-        TK100_IOModule_IO,
-        TK200_CSModule,
-        TK200_LOWModule,
-        TK200_IOModule,
-        TK200_INModule,
-        CS_DEVSTY_MAX
-    }CSDEVSTYLE;
-public:
     CSCANSTATE          csstate;        //1030协议初始化时的状态变迁
 
     uint8_t             csid;           //cs id 0,1,2

@@ -14,12 +14,10 @@
 
 
 
-// #include "can_protocol.h"
-// #include "bitset"
+
 #include "reflect.h"
-// #include "driver.h"
 #include "ptxml.h"
-// #include "ptrwdatainfo.h"
+
 
 
 using namespace std;
@@ -126,9 +124,23 @@ struct can_dev_para_t
         Define_Meta_Enumdata(16)
 };
 
+// struct can_256dev_para
+// {
+//     int    id;          //设备从机号
+//     string name;        //名称
+//     int    innum;       //输入个数
+//     int    outnum;      //输出个数
+//     int    polltime;    //查询周期,单位(ms)
+
+//     uint16_t type;
+//     uint16_t enable;
+//     uint16_t link_num;
+//     uint16_t auto_reset;    //
+// };
+
 struct can_256dev_para_t
 {
-    Declare_Struct(can_dev_para_t)
+    Declare_Struct(can_256dev_para_t)
     Define_Field(1, int, id)
     Define_Field(2, string, name)
     Define_Field(3, int, innum)
@@ -144,12 +156,12 @@ struct can_256dev_para_t
     Define_Enum(2, 6, DEV_256_MODBUS_LOCK, 1)
     Define_Enum(3, 6, DEV_256_PHONE, 2)
     Define_Enum(4, 6, DEV_256_LOCK, 3)
-    Define_Enum(5, 6, LOW_256_MACH, 4)
+    Define_Enum(5, 6, LOW_MACH, 4)
     Define_Enum(6, 6, TK236_IOModule_Salve, 5)
-    Define_Enum(7, 6, TERMINAL_256, 6)
-    Define_Enum(8, 6, IN_256_DEV, 7)
-    Define_Enum(9, 6, DEV_256_RELAY, 8)
-    Define_Enum(10, 6, TK100_CSModule, 9)
+    Define_Enum(7, 6, TERMINAL, 6)
+    Define_Enum(8, 6, IN_DEV, 7)
+    Define_Enum(9, 6, TK100_CSModule, 8)
+    Define_Enum(10, 6, DEV_256_RELAY, 9)
     Define_Enum(11, 6, TK200_IOModule, 10)
     Define_Enum(12, 6, TK100_BS_Module, 11)
     Define_Enum(13, 6, TK100_IOModule_IO, 12)

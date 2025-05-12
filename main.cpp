@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForCStrings(codec);
     QCoreApplication a(argc, argv);
 
-#if 0
+#if 1
          argc = 9;
          argv[1] = "87654334";
          argv[2] = "87654335";
@@ -95,9 +95,7 @@ int main(int argc, char *argv[])
 #else
          argv[8] = "236_1";
 #endif
-//         argv[6] = "1";
-//         argv[7] = "1030";
-//         argv[7] = "tk200";
+
 #endif
     if (argc < 9)
     {
@@ -138,16 +136,16 @@ int main(int argc, char *argv[])
         PRINTF_CLASS::getInstance()->printf_class_init(path, pr_file);
     }
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-    zprintf3("Project: %s\r\n", "ptcan1 for KTC256 ");
-    zprintf3("Compile time: %s,%s\r\n", __DATE__, __TIME__);
-    zprintf3("pt can version %d.%d.%d\r\n", PTCAN_VERSION_H, PTCAN_VERSION_M, PTCAN_VERSION_L);
-    zprintf3("ptcan low version is %d\r\n");
-    zprintf3("0 新增无线采集器中传感器电量报警\r\n");
-    zprintf3("0 修改共享内存\r\n");
-    zprintf3("1 去除接收can帧打印\r\n");
-    zprintf3("1 无线采集设备频率量电量报警bug修改\r\n");
-    zprintf3("1 打印input频率量\r\n");
-    zprintf3("2. 增加logic进程心跳监听功能\r\n");
+    zprintf3("Project: %s\n", "ptcan1 for KTC256 ");
+    zprintf3("Compile time: %s,%s\n", __DATE__, __TIME__);
+    zprintf3("pt can version %d.%d.%d\n", PTCAN_VERSION_H, PTCAN_VERSION_M, PTCAN_VERSION_L);
+    zprintf3("ptcan low version is %d\n");
+    zprintf3("0 新增无线采集器中传感器电量报警\n");
+    zprintf3("0 修改共享内存\n");
+    zprintf3("1 去除接收can帧打印\n");
+    zprintf3("1 无线采集设备频率量电量报警bug修改\n");
+    zprintf3("1 打印input频率量\n");
+    zprintf3("2. 增加logic进程心跳监听功能\n");
     zprintf3("++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     signal(SIGINT, SignalFunc);
@@ -186,7 +184,12 @@ int main(int argc, char *argv[])
         dir2 = "/opt/config/driver/device/" + type + "_2" + ".xml";
     }
     gCanInfo->creat_can_bus_pro( );
-    gCanInfo->can_read_xml(QString(QString::fromLocal8Bit(dir.c_str( ))), QString(QString::fromLocal8Bit(dir1.c_str( ))),
+    if(type == "1030")
+    {
+        gCanInfo->can_read_xml(QString(QString::fromLocal8Bit(dir.c_str( ))));
+    }
+    else
+        gCanInfo->can_read_xml(QString(QString::fromLocal8Bit(dir.c_str( ))), QString(QString::fromLocal8Bit(dir1.c_str( ))),
                            QString(QString::fromLocal8Bit(dir2.c_str( ))));
 
     gCanInfo->can_app_init( );

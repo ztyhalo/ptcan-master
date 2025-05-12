@@ -37,26 +37,26 @@ using namespace std;
 #define TK_IO_SATET_N       0x03
 
 
-typedef enum
-{
-    NO_INSULATE_SWITCH = 0x01,
-    INSULATE_SWITCH,
-    CS_DEV,
-    LOW_MACH,
-    TERMINAL,
-    OPERATER,
-    IN_DEV,
-    OUT_DEV,
-    TK100_CSModule = 0x09,
-    TK100_IOModule_Salve,
-    TK100_BS_Module,
-    TK100_IOModule_IO,
-    TK200_CSModule,
-    TK200_LOWModule,
-    TK200_IOModule,
-    TK200_INModule,
-    CS_DEVSTY_MAX
-}CSDEVSTYLE;
+// typedef enum
+// {
+//     NO_INSULATE_SWITCH = 0x01,
+//     INSULATE_SWITCH,
+//     CS_DEV,
+//     LOW_MACH,
+//     TERMINAL,
+//     OPERATER,
+//     IN_DEV,
+//     OUT_DEV,
+//     TK100_CSModule = 0x09,
+//     TK100_IOModule_Salve,
+//     TK100_BS_Module,
+//     TK100_IOModule_IO,
+//     TK200_CSModule,
+//     TK200_LOWModule,
+//     TK200_IOModule,
+//     TK200_INModule,
+//     CS_DEVSTY_MAX
+// }CSDEVSTYLE;
 
 typedef enum
 {

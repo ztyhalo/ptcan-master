@@ -39,6 +39,10 @@ public:
     int parentid;
     QVector<dev_info<Dev,Ext,INode, ONode> > dev;
 
+    driver_info():parentid(0)
+    {
+        ;
+    }
     int driver_write_xml(const QString & name);
     int driver_read_xml(const QString & name);
 
