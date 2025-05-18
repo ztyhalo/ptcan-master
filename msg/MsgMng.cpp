@@ -1,5 +1,139 @@
 #include "MsgMng.h"
 #include "candata.h"
+#include "zprint.h"
+MsgMngBase::MsgMngBase()
+{
+    ;
+}
+
+MsgMngBase::~MsgMngBase()
+{
+    zprintf3("msgmngbase destruct!\n");
+}
+
+// void MsgMngBase::sem_rec_process(sMsgUnit val)
+// {
+//     ;
+// }
+
+MsgMngDriver::MsgMngDriver():testcycle(0),dest_id(0)
+{
+    soure_id.app = 0;
+}
+
+MsgMngDriver::~MsgMngDriver()
+{
+    zprintf3("MsgMngDriver destruct!\n");
+}
+
+// void * RecvMsg_task(void * arg)
+// {
+//     MsgMng *pMsgMng = MsgMng::GetMsgMng();
+
+//     while(1)
+//     {
+//         //TODO:
+//         pMsgMng->RecvMsgProcess(arg);
+//     }
+
+//     return NULL;
+// }
+
+bool MsgMngDriver::Init(int recvkey,int sendkey, PtDriverBase * pdriver)
+{
+    this->msg_init(recvkey, 1);
+    if(!this->create_object())
+    {
+        zprintf1("MsgMngDriver create recvkey %d error!\n", recvkey);
+        return false;
+    }
+    m_SendMsg.msg_init(sendkey, 1);
+
+    if(!m_SendMsg.get_msg())
+    {
+        zprintf1("MsgMngDriver get sendkey %d error!\n", sendkey);
+        if(!m_SendMsg.create_object())
+        {
+            zprintf1("MsgMngDriver create sendkey %d error!\n", sendkey);
+            return false;
+        }
+    }
+    m_pDriver = pdriver;
+    this->start("MsgMngDriRev");
+
+    return true;
+}
+
+
+void MsgMngDriver::sem_rec_process(sMsgUnit pkt)
+{
+    // sMsgUnit   pkt;
+    uint16_t   pkt_len;
+    uint32_t   addr;
+    // Can_Data *pdriver = (Can_Data *) arg;
+    if((pkt.dest.driver.id_driver != m_pDriver->m_driverId) && (pkt.dest.app != BROADCAST_ID))
+        return;
+
+    switch(pkt.type)
+    {
+        case MSG_TYPE_DriverGetInfo:
+            uint8_t midchang ;
+            soure_id.driver.id_driver = pkt.dest.driver.id_driver;
+
+            dest_id = pkt.source.app;
+            zprintf3("receive dest id is %d\n",dest_id);
+            addr = pkt.dest.app;
+            pkt.dest.app = pkt.source.app;
+            pkt.source.app =addr;
+            //            zprintf1("receive driver info id \n\n\n");
+
+            memcpy(&pkt.data[0] ,&(m_pDriver->m_paramInfo), sizeof(sParamInfoType));
+            midchang = pkt.data[0];
+            pkt.data[0] = pkt.data[1];
+            pkt.data[1] = midchang;
+            midchang = pkt.data[2];
+            pkt.data[2] = pkt.data[3];
+            pkt.data[3] = midchang;
+            midchang = pkt.data[4];
+            pkt.data[4] = pkt.data[5];
+            pkt.data[5] = midchang;
+            pkt_len = sizeof(sParamInfoType);
+            // pSendMsg->SendMsg(&pkt,pkt_len);
+            break;
+
+        case MSG_TYPE_DriverSendHeart:
+
+            addr = pkt.dest.app;
+            pkt.dest.app = pkt.source.app;
+            pkt.source.app =addr;
+            // pSendMsg->SendMsg(&pkt,0);
+            break;
+
+        case MSG_TYPE_AppGetIOParam:
+            addr = pkt.dest.app;
+            pkt.dest.app = pkt.source.app;
+            pkt.source.app =addr;
+            can_inode_info ininfo;
+            // pdriver->get_innode_info(pkt.source.driver.id_parent, pkt.source.driver.id_child,
+            //                          pkt.source.driver.id_point, ininfo);
+            memcpy(pkt.data, &ininfo,sizeof(ininfo));
+            // pSendMsg->SendMsg(&pkt,sizeof(ininfo));
+            break;
+
+
+        default:
+            break;
+    }
+    return;
+}
+
+// void MsgMng::msgmng_send_msg(sMsgUnit *pdata, uint16_t size)
+// {
+//     //    for(int i = 0; i < 7; i++){
+//     //        printf("send %d is %d\n", i, pdata->data[i]);
+//     //    }
+//     pSendMsg->SendMsg(pdata, size);
+// }
 
 MsgMng::MsgMng():pRecvMsg(NULL),pSendMsg(NULL),testcycle(0),dest_id(0)
 {

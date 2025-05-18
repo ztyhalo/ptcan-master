@@ -15,6 +15,22 @@ typedef struct
     uint16_t    TotalStateCnt;
 }sParamInfoType;
 
+
+
+struct pt_inode_info
+{
+    int      nodeid;        //点的序列号
+    int      datatype;      //点的数据类型(开关量常闭/开关量常开/频率量)
+    uint16_t node_en;       //使能标志
+    uint16_t shake_time;    //去抖时间
+    uint16_t threshold_min;
+    uint16_t threshold_max;
+    uint8_t  notify_time_interval;
+    uint8_t  notify_en;
+    uint8_t  notify_range;
+};
+
+
 typedef enum
 {
     COMSTATE_NORMAL =0,
