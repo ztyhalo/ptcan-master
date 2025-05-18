@@ -144,27 +144,6 @@ struct sLine_State
     uint8_t BS_Buttion[BS_MAX_NUM];
 };
 
-struct sLine256_State
-{
-    uint16_t lineState;
-    uint16_t Slave_IO_Exist;
-    uint16_t Dev_Exist;
-    uint16_t BS_Num_Exist;
-    uint16_t BS_State;
-    uint16_t BS_Location;
-    uint16_t break_location;
-    uint16_t Tail_Location;
-    uint16_t ZD_Volte;
-    uint16_t CS_Volte[2];
-    uint16_t CS_Current[2];
-    uint16_t ptcan_v;
-    //    uint16_t reset_reason;
-    uint32_t misc_yuliu_1;
-    uint32_t misc_yuliu_2;
-    uint32_t misc_yuliu_3;
-    uint32_t misc_yuliu_4;
-    uint8_t BS_Buttion[BS_MAX_NUM];
-};
 
 struct sDevc_State
 {
@@ -189,14 +168,11 @@ struct Max_State_Data
     sDevc_State devc_state[DEV_MAX_NUM];
 };
 
-struct Max_256State_Data
-{
-    sLine256_State line_state;
-    sDevc_State devc_state[DEV_MAX_NUM];
-};
 
-#define MAX_STATE_SIZE (sizeof(Max_State_Data))
-#define MAX_256STATE_SIZE (sizeof(Max_256State_Data))
+#define MAX_STATE_BUF_SIZE       (sizeof(Max_State_Data))
+
+#define MAX_STATE_SIZE          (sizeof(Max_State_Data))
+
 enum
 {
     MAX_STATE_LINEID = 1,
@@ -366,6 +342,7 @@ typedef struct
     uint8_t             framnum;
     bitset< HEART_MAX > framark;
 } HEARTRXINF;
+
 
 // class PtDevCommon
 // {

@@ -10,9 +10,6 @@
 #include "bsdev.h"
 
 
-
-#define MAX_STATE_BUF_SIZE       (sizeof(Max_State_Data))
-
 enum{
     BS_NUM_D = 0,
     ZD_STATE,

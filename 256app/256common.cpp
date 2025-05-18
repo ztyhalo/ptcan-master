@@ -16,7 +16,7 @@ int CAN_256DEV_APP::creat_config_info(CAN_DEV_INFO &info)
     bitset< 16 > link_set;
 
     para = info.para;
-    if(para.type == CS_DEV)
+    if(para.type == CS_256_DEV)
     {
         set_cs_config_head();
         if(info.para.link_num & 0x0001)
@@ -84,7 +84,7 @@ int CAN_256DEV_APP::creat_config_info(CAN_DEV_INFO &info)
         //        zprintf3("dev %d out %d link %d %d\n", para.id, i, info.onode[i].link_stop, info.onode[i].node_en);
     }
     int size = 0;
-    if(para.type != CS_DEV)
+    if(para.type != CS_256_DEV)
     {
         size = (para.innum * PT_INPUTPARA_MAX + para.outnum * PT_OUTPUTPARA_MAX) * 2;
     }
@@ -97,13 +97,13 @@ int CAN_256DEV_APP::creat_config_info(CAN_DEV_INFO &info)
         info.para.link_num = (uint16_t)link_set.to_ulong();
         configsize -= CONF_TAIL;
     }
-    else if(para.type == TK100_CSModule)
+    else if(para.type == TK100_256_CSModule)
     {
         config_p[configsize - CONF_TAIL] = 6;
         config_p[2] += CONF_TAIL;
         size += CONF_TAIL * 2;
     }
-    else if(para.type != CS_DEV)
+    else if(para.type != CS_256_DEV)
         configsize -= CONF_TAIL;
 
     memcpy(turnf.data(), &config_p[CONF_HEAD], size);
@@ -124,7 +124,7 @@ int CAN_256DEV_APP::set_default_config(uint8_t type)
     para.outnum = comdevio[type].outnum;
 
     set_config_head();
-    if(type == TERMINAL)
+    if(type == TERMINAL_256)
     {
         devenable = 1;
         if(stateinfo != NULL)
@@ -151,7 +151,7 @@ int CAN_256DEV_APP::set_default_config(uint8_t type)
         config_p[2] += CONF_TAIL;
         size += CONF_TAIL * 2;
     }
-    else if(para.type == TK100_CSModule)
+    else if(para.type == TK100_256_CSModule)
     {
         zprintf1("tk100 cs must enable\n");
         return -2;
@@ -498,13 +498,13 @@ void Max_256State_Pro::set_voip_state(uint8_t branch, uint8_t state)
     zprintf3("|||share|||-----set_voip_state is %d\r\n", state);
     if(state)
     {
-        (share_state.m_data + branch)->line_state.lineState =
-            SET_NTH_BIT(((share_state.m_data + branch)->line_state.lineState), 5);
+        (share_state.m_data + branch)->line_state.CS_State =
+            SET_NTH_BIT(((share_state.m_data + branch)->line_state.CS_State), 5);
     }
     else
     {
-        (share_state.m_data + branch)->line_state.lineState =
-            CLEAR_NTH_BIT((share_state.m_data + branch)->line_state.lineState, 5);
+        (share_state.m_data + branch)->line_state.CS_State =
+            CLEAR_NTH_BIT((share_state.m_data + branch)->line_state.CS_State, 5);
     }
     share_state.unlock_qtshare();
 }
@@ -517,13 +517,13 @@ void Max_256State_Pro::set_line_18v_state(uint8_t branch, uint8_t state, uint8_t
     zprintf3("|||share|||-----set_line_18v_state is %d %d\r\n", lineNum, state);
     if(state)
     {
-        (share_state.m_data + branch)->line_state.lineState =
-            CLEAR_NTH_BIT((share_state.m_data + branch)->line_state.lineState, lineNumBit);
+        (share_state.m_data + branch)->line_state.CS_State =
+            CLEAR_NTH_BIT((share_state.m_data + branch)->line_state.CS_State, lineNumBit);
     }
     else
     {
-        (share_state.m_data + branch)->line_state.lineState =
-            SET_NTH_BIT(((share_state.m_data + branch)->line_state.lineState), lineNumBit);
+        (share_state.m_data + branch)->line_state.CS_State =
+            SET_NTH_BIT(((share_state.m_data + branch)->line_state.CS_State), lineNumBit);
     }
     share_state.unlock_qtshare();
 }
@@ -532,8 +532,8 @@ void Max_256State_Pro::set_line_work_state(uint8_t branch, uint8_t state)
 {
     share_state.lock_qtshare();
 
-    (share_state.m_data + branch)->line_state.lineState =
-        (((share_state.m_data + branch)->line_state.lineState & 0xFC) | state);
+    (share_state.m_data + branch)->line_state.CS_State =
+        (((share_state.m_data + branch)->line_state.CS_State & 0xFC) | state);
     share_state.unlock_qtshare();
 }
 
@@ -549,7 +549,7 @@ void Max_256State_Pro::set_tail_location(uint8_t branch, uint8_t location)
     uint8_t dev_type = get_dev_type(branch, location - 1);
     uint8_t dev_num  = get_dev_num(branch);
     share_state.lock_qtshare();
-    if(dev_num >= location && dev_type != TERMINAL)
+    if(dev_num >= location && dev_type != TERMINAL_256)
     {
         if((share_state.m_data + branch)->line_state.Tail_Location != location)
         {
@@ -641,10 +641,10 @@ void Max_256State_Pro::set_break_location(uint8_t branch, uint8_t location)
     share_state.lock_qtshare();
     if(dev_num >= location)
     {
-        if((share_state.m_data + branch)->line_state.break_location != location)
+        if((share_state.m_data + branch)->line_state.break_Location != location)
         {
             zprintf3("|||share|||-----set branch: %d, break_location is %d\r\n", branch, location);
-            (share_state.m_data + branch)->line_state.break_location = location;
+            (share_state.m_data + branch)->line_state.break_Location = location;
         }
     }
     share_state.unlock_qtshare();
@@ -666,7 +666,7 @@ uint8_t Max_256State_Pro::get_break_location(uint8_t branch)
     uint8_t location;
     share_state.lock_qtshare();
 
-    location = (share_state.m_data + branch)->line_state.break_location;
+    location = (share_state.m_data + branch)->line_state.break_Location;
 
     share_state.unlock_qtshare();
     return location;

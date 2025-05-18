@@ -3185,7 +3185,7 @@ uint16_t cs_can256::get_dev_type(uint8_t devid)
     //    printf("devid = %d,  csmacorder = %d, mac_terminal_num = %d\n",devid, csmacorder, mac_terminal_num);
     if ((devid + 1) > csmacorder)
     {
-        return TERMINAL;
+        return TERMINAL_256;
     }
     else
     {

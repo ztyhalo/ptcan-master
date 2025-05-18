@@ -241,7 +241,7 @@ public:
     int                             cs_have;
     uint8_t                         tatol_dev;
     int                             m_lockNm;
-    QTShareDataT< Max_256State_Data > share_state;
+    QTShareDataT< Max_State_Data > share_state;
 
 public:
     Max_256State_Pro():cs_have(0),tatol_dev(0),m_lockNm(0)
